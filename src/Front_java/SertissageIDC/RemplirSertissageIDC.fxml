@@ -15,8 +15,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
-
-<!--?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?-->
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 
 <StackPane fx:id="stackPane" prefHeight="750.0" prefWidth="1360.0" stylesheets="@RemplirSertissageIDC.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Front_java.SertissageIDC.RemplirSertissageIDC">
            
@@ -37,7 +36,7 @@
                      <children>
                         <Button layoutX="5.0" layoutY="18.0" mnemonicParsing="false" prefWidth="30.0" styleClass="nomPrenom">
                          <graphic>
-                        <!--FontAwesomeIcon glyphName="USER" size="2.7em" /-->
+                        <FontAwesomeIcon glyphName="USER" size="2.7em" />
                      </graphic>
                         </Button>
                         <Label fx:id="nomPrenomUser" layoutX="42.0" layoutY="30.0" text="">
@@ -75,29 +74,29 @@
                               <Font name="System Bold" size="16.0" />
                            </font>
                         </Label>
-                        <Label layoutX="820.0" layoutY="30.0" text="Opération :">
+                        <Label layoutX="795.0" layoutY="30.0" text="Opération :">
                            <font>
                               <Font name="System Bold" size="16.0" />
                            </font>
                         </Label>
-                        <Label fx:id="operationUser" layoutX="909.0" layoutY="30.0" text="">
+                        <Label fx:id="operationUser" layoutX="890.0" layoutY="30.0" text="">
                            <font>
                               <Font name="System Bold" size="16.0" />
                            </font>
                         </Label>
                         <Button fx:id="btnLogout" layoutX="1003.0" layoutY="25.0" mnemonicParsing="false" onAction="#logout" prefWidth="50.0" styleClass="logout">
                          <graphic>
-                        <!--FontAwesomeIcon glyphName="SIGN_OUT" size="2.5em" /-->
+                        <FontAwesomeIcon glyphName="SIGN_OUT" size="2.5em" />
                      </graphic>
                      </Button>
                         <Button fx:id="btnClose" layoutX="1000.0" layoutY="-35.0" mnemonicParsing="false" onAction="#close" prefHeight="24.0" prefWidth="57.0" styleClass="close">
                          <graphic>
-                        <!--FontAwesomeIcon glyphName="CLOSE" size="1.5em" /-->
+                        <FontAwesomeIcon glyphName="CLOSE" size="1.5em" />
                      </graphic>
                      </Button>
                         <Button fx:id="btnMinimize" layoutX="950.0" layoutY="-35.0" mnemonicParsing="false" onAction="#minimize" prefHeight="24.0" prefWidth="57.0" styleClass="minimize">
                          <graphic>
-                       <!--FontAwesomeIcon glyphName="MINUS" size="1.5em" /-->
+                       <FontAwesomeIcon glyphName="MINUS" size="1.5em" />
                    </graphic>
                    </Button>
                         <Label layoutX="528.0" layoutY="30.0" text="Segment :">

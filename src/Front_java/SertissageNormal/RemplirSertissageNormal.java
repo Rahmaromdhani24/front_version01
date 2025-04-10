@@ -830,10 +830,14 @@ public class RemplirSertissageNormal {
 			
 		
 			labelLargeurSertissage.setText(SertissageNormaleInformations.labelLargeurSertissage +"/"+toleranceLargeurSertissageString);
+			SertissageNormaleInformations.labelLargeurSertissageComplet=SertissageNormaleInformations.labelLargeurSertissage +"/"+toleranceLargeurSertissageString ; 
 			
 			labelHauteurIsolant.setText(SertissageNormaleInformations.labelHauteurIsolant +"/"+toleranceHauteurIsolant+" mm");
+			SertissageNormaleInformations.labelHauteurIsolantComplet = SertissageNormaleInformations.labelHauteurIsolant +"/"+toleranceHauteurIsolant+" mm" ; 
+			
 			
 			labelLargeurIsolant.setText(SertissageNormaleInformations.labelLargeurIsolant +"/"+toleranceLargeurIsolant+" mm");
+			SertissageNormaleInformations.labelLargeurIsolantComplet = SertissageNormaleInformations.labelLargeurIsolant +"/"+toleranceLargeurIsolant+" mm" ; 
 			
 			String traction =fetchTractionFromAPI(SertissageNormaleInformations.numeroOutils,
                     SertissageNormaleInformations.numeroContacts,

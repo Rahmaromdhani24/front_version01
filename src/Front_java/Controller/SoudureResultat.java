@@ -467,8 +467,6 @@ private void showErrorDialog(String title, String message) {
 	
 	/******************   Recuperer valeur vert   min de moyenne &&& Max *****************/
 	
-	
-
 	public void testerMoyenne(int moyenneEch) {
 	    int minPelage = extractNumber(AppInformations.nbrPelage);
 	    

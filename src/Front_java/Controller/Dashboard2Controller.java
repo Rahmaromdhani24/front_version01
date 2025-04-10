@@ -11,14 +11,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-
-import Front_java.ChartMoyenneSoudure;
-import Front_java.Configuration.AjoutSoudureResultDTO;
 import Front_java.Configuration.AppInformations;
-import Front_java.Configuration.SertissageNormaleInformations;
 import Front_java.Configuration.SoudureInformations;
 import Front_java.Configuration.SoudureInformationsCodeB;
-import Front_java.Configuration.SoudureReponse;
 import Front_java.Configuration.SoudureResult;
 import Front_java.Loading.LoadingController;
 import Front_java.Modeles.OperateurInfo;
@@ -41,11 +36,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jfoenix.controls.JFXButton;

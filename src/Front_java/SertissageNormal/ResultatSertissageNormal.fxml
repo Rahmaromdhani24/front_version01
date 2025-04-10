@@ -14,8 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
-
-<!--?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?-->
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 
 <StackPane fx:id="stackPane" prefHeight="774.0" prefWidth="1360.0" stylesheets="@ResultatSertissageNormal.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Front_java.SertissageNormal.ResultatSertissageNormal">
            
@@ -36,7 +35,7 @@
                      <children>
                         <Button layoutX="5.0" layoutY="18.0" mnemonicParsing="false" prefWidth="30.0" styleClass="nomPrenom">
                          <graphic>
-                        <!--FontAwesomeIcon glyphName="USER" size="2.7em" /-->
+                        <FontAwesomeIcon glyphName="USER" size="2.7em" />
                      </graphic>
                         </Button>
                         <Label fx:id="nomPrenomUser" layoutX="42.0" layoutY="30.0" text="">
@@ -91,12 +90,12 @@
                      </Button>
                         <Button fx:id="btnClose" layoutX="1000.0" layoutY="-35.0" mnemonicParsing="false" onAction="#close" prefHeight="24.0" prefWidth="57.0" styleClass="close">
                          <graphic>
-                        <!--FontAwesomeIcon glyphName="CLOSE" size="1.5em" /-->
+                        <FontAwesomeIcon glyphName="CLOSE" size="1.5em" />
                      </graphic>
                      </Button>
                         <Button fx:id="btnMinimize" layoutX="950.0" layoutY="-35.0" mnemonicParsing="false" onAction="#minimize" prefHeight="24.0" prefWidth="57.0" styleClass="minimize">
                          <graphic>
-                       <!--FontAwesomeIcon glyphName="MINUS" size="1.5em" /-->
+                       <FontAwesomeIcon glyphName="MINUS" size="1.5em" />
                    </graphic>
                    </Button>
                         <Label layoutX="528.0" layoutY="30.0" text="Segment :">
@@ -133,7 +132,7 @@
                   </Label>
                </children>
             </Pane>
-            <Button fx:id="btnSuivant" layoutX="981.0" layoutY="2.0" mnemonicParsing="false" onAction="#suivant" prefHeight="50.0" prefWidth="150.0" style="-fx-alignment: center;" styleClass="suivant-btn" text="Suivant">
+            <Button fx:id="btnSuivant" layoutX="1100.0" layoutY="11.0" mnemonicParsing="false" onAction="#suivant" prefHeight="50.0" prefWidth="150.0" style="-fx-alignment: center;" styleClass="suivant-btn" text="Suivant">
                <font>
                   <Font name="System Bold" size="18.0" />
                </font>
@@ -464,7 +463,13 @@
                      </Label>
                   </children>
                </Pane>
-            </children>
+                <Pane fx:id="paneChartSertissageNormal" layoutX="911.0" layoutY="145.0" prefHeight="250.0" prefWidth="400.0" />
+               <Label fx:id="titreChart" layoutX="1040.0" layoutY="110.0" text="Hauteur de sertissage sur cuivre ">
+                  <font>
+                     <Font name="System Bold" size="16.0" />
+                  </font>
+               </Label>           
+               </children>
          </AnchorPane>
       </center>
  

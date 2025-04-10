@@ -34,11 +34,16 @@ public class SertissageNormaleInformations {
     public static String labelTraction ;
     
 	public static int testTerminitionCommande =  0 ;
-
+	public static String labelLargeurSertissageComplet;
+	public static String labelHauteurIsolantComplet;
+	public static String labelLargeurIsolantComplet;
 
 	
 
 	public static void reset() {
+		labelLargeurSertissageComplet = null ; 
+		labelHauteurIsolantComplet= null ; 
+		labelLargeurIsolantComplet = null ; 
 	    projetSelectionner = null;
 	    sectionFil = null;
 	    numeroOutils = null;

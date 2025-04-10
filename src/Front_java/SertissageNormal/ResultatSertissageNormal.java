@@ -8,8 +8,16 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+
+import Front_java.ChartEttenduTorsadage;
+import Front_java.ChartHauteurSertissageNormal;
+import Front_java.ChartMoyenneTorsadage;
 import Front_java.Configuration.AppInformations;
+import Front_java.Configuration.SertissageNormalReponse;
 import Front_java.Configuration.SertissageNormaleInformations;
+import Front_java.Configuration.TorsadageInformations;
+import Front_java.Configuration.TorsadageReponse;
+import Front_java.Configuration.TorsadageResult;
 import Front_java.Modeles.OperateurInfo;
 import Front_java.Modeles.SertissageNormalData;
 import javafx.animation.Timeline;
@@ -25,11 +33,16 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
@@ -171,7 +184,12 @@ public class ResultatSertissageNormal {
 	    @FXML
 	    private Label tractionEchFin;
 
-	
+	    @FXML
+	    private Pane paneChartSertissageNormal;
+	    
+	    public static int numPageSertissageNormalGlobale;
+		public static long idPdekSertissageNormalGlobale;
+		
 	@FXML
 	public void initialize(){
 		
@@ -182,8 +200,57 @@ public class ResultatSertissageNormal {
 		
 		afficherDateSystem();
 		afficherHeureSystem();
-	}
 
+
+	}
+	 private void chargerSertissagesParPdekEtPage() {
+	        Task<List<SertissageNormalReponse>> task = new Task<>() {
+	            @Override
+	            protected List<SertissageNormalReponse> call() throws Exception {
+	                String token = AppInformations.token;
+	                String url = "http://localhost:8281/operations/SertissageNormal/sertissages-par-pdek-et-page"
+	                           + "?pdekId=" +idPdekSertissageNormalGlobale
+	                           + "&pageNumber=" + numPageSertissageNormalGlobale ; 
+
+	                System.out.println("id de pdek :"+idPdekSertissageNormalGlobale) ; 
+	                System.out.println("num page  de pdek :"+numPageSertissageNormalGlobale) ; 
+
+	                HttpRequest request = HttpRequest.newBuilder()
+	                        .uri(URI.create(url))
+	                        .header("Authorization", "Bearer " + token)
+	                        .GET()
+	                        .build();
+
+	                HttpClient client = HttpClient.newHttpClient();
+	                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+	                if (response.statusCode() == 200) {
+	                    ObjectMapper mapper = new ObjectMapper();
+	                    return mapper.readValue(response.body(), new TypeReference<List<SertissageNormalReponse>>() {});
+	                } else {
+	                    throw new Exception("Erreur " + response.statusCode() + " : " + response.body());
+	                }
+	            }
+	        };
+
+	        task.setOnSucceeded(event -> {
+	            List<SertissageNormalReponse> reponses = task.getValue();
+	           
+
+	            // Une fois les données récupérées, créer le graphique
+	            StackPane moyenneChartWithZones =  ChartHauteurSertissageNormal.createChartWithZones(reponses);
+	            paneChartSertissageNormal.getChildren().clear(); // au cas où il y a un ancien graphique
+	            paneChartSertissageNormal.getChildren().add(moyenneChartWithZones);
+
+	       
+	        });
+
+	        task.setOnFailed(event -> {
+	            System.out.println("Erreur chargement soudures : " + task.getException().getMessage());
+	        });
+
+	        new Thread(task).start();
+	    }
 public void initialiserDonneesPDEKEnregistrer() {
 		
 		nbrCycle.setText(SertissageNormaleInformations.numCycle+"" );
@@ -209,7 +276,11 @@ public void initialiserDonneesPDEKEnregistrer() {
 		machineTraction.setText(SertissageNormaleInformations.machineTraction);
 	
 		quantiteCycle.setText(SertissageNormaleInformations.quantiteAtteint );
-				
+		
+		labelHauteurSertissage.setText(SertissageNormaleInformations.labelHauteurSertissage +"/±0.05 mm");
+		labelLargeurSertissage.setText(SertissageNormaleInformations.labelLargeurSertissageComplet) ; 
+		labelLargeurIsolant.setText(SertissageNormaleInformations.labelLargeurIsolantComplet);
+		labelHauteurIsolant.setText(SertissageNormaleInformations.labelHauteurIsolantComplet);
 	}
 
 	@FXML
@@ -609,7 +680,24 @@ public void initialiserDonneesPDEKEnregistrer() {
 					HttpClient client = HttpClient.newHttpClient();
 					HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-					if (response.statusCode() == 201) {
+					if (response.statusCode() == 200) {
+					    String responseBody = response.body();
+					    ObjectMapper mapper = new ObjectMapper();
+					    JsonNode jsonResponse = mapper.readTree(responseBody);
+
+					    // On vérifie la présence des champs et on met des valeurs par défaut si manquants
+					    long id = jsonResponse.has("pdekId") && !jsonResponse.get("pdekId").isNull()
+					            ? jsonResponse.get("pdekId").asLong()
+					            : -1L; // valeur par défaut
+
+					    int num = jsonResponse.has("pageNumber") && !jsonResponse.get("pageNumber").isNull()
+					            ? jsonResponse.get("pageNumber").asInt()
+					            : -1; // valeur par défaut
+
+					    idPdekSertissageNormalGlobale = id;
+					    numPageSertissageNormalGlobale = num;
+					    System.out.println("idPdekTorsadageGlobale  methode add :"+idPdekSertissageNormalGlobale) ; 
+					    System.out.println("numPageTorsadageGlobale methode add :"+numPageSertissageNormalGlobale) ; 
 					} else {
 						System.out.println("Erreur dans l'ajout PDEK, code : " + response.statusCode() + ", message : "
 								+ response.body());
@@ -629,7 +717,11 @@ public void initialiserDonneesPDEKEnregistrer() {
 			System.out.println("Erreur lors de l'ajout du PDEK : " + exception.getMessage());
 			showErrorDialog("Erreur", "Erreur lors de l'ajout du PDEK : " + exception.getMessage());
 		});
-
+		task.setOnSucceeded(event -> {
+		    // Ces méthodes s'exécutent uniquement quand l'ajout est réussi
+		   
+		    chargerSertissagesParPdekEtPage() ; 
+		});
 		new Thread(task).start();
 	}
 
