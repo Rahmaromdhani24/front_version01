@@ -1,21 +1,8 @@
 package Front_java;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.List;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import Front_java.Configuration.AppInformations;
 import Front_java.Configuration.SoudureInformations;
-import Front_java.Configuration.SoudureReponse;
-import Front_java.Configuration.SoudureResult;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -39,7 +26,7 @@ public class ChartEttenduSoudure extends Application {
         root.setPadding(new Insets(20));
 
         // Charge les données et affiche le chart une fois terminé
-        chargerSouduresParPdekEtPage(root);
+      //  chargerSouduresParPdekEtPage(root);
 
         Scene scene = new Scene(root, 300, 200);
         primaryStage.setScene(scene);
@@ -47,7 +34,7 @@ public class ChartEttenduSoudure extends Application {
         primaryStage.show();
     }
 
-    public static StackPane createEtenduChartWithZones(List<SoudureReponse> soudures) {
+    public static StackPane createEtenduChartWithZones(String numCycle  , int r) {
     	
         double pas = 5.66;
         int etendu =SoudureInformations.EtenduValueMax ; 
@@ -61,9 +48,8 @@ public class ChartEttenduSoudure extends Application {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
 
         // Remplir les données depuis la liste
-        for (SoudureReponse s : soudures) {
-            series.getData().add(new XYChart.Data<>(String.valueOf(s.getNumeroCycle()), s.getEtendu()));
-        }
+        series.getData().add(new XYChart.Data<>(numCycle, r));
+     
 
         chart.getData().add(series);
 
@@ -148,7 +134,7 @@ public class ChartEttenduSoudure extends Application {
         }
     }
 /***************************************************************************************************************************/
-    public static void chargerSouduresParPdekEtPage(VBox root) {
+  /*  public static void chargerSouduresParPdekEtPage(VBox root) {
         Task<List<SoudureReponse>> task = new Task<>() {
             @Override
             protected List<SoudureReponse> call() throws Exception {
@@ -186,5 +172,5 @@ public class ChartEttenduSoudure extends Application {
         });
 
         new Thread(task).start();
-    }
+    }*/
 }

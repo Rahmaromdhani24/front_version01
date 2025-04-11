@@ -14,7 +14,6 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
-
 <?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 
 <StackPane fx:id="stackPane" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Front_java.Torsadage.ResultatTorsadage">
@@ -144,6 +143,11 @@
       <center>
          <AnchorPane prefHeight="514.0" prefWidth="1300.0" BorderPane.alignment="CENTER">
             <children>
+               <Label layoutX="1082.0" layoutY="78.0" text="La Moyenne X̄">
+                  <font>
+                     <Font name="System Bold" size="16.0" />
+                  </font>
+               </Label>
                <GridPane layoutX="15.0" layoutY="110.0" prefHeight="411.0" prefWidth="879.0" styleClass="grid-pane-border" stylesheets="@ResultatTorsadage.css">
                  <columnConstraints>
                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="418.0" minWidth="10.0" prefWidth="415.0" />
@@ -257,25 +261,13 @@
               </Label>
                <Label layoutX="381.0" layoutY="73.0" styleClass="matrix-grid-title" text="Numéro Courant : " />
                <Label fx:id="nbrCycle" layoutX="600.0" layoutY="73.0" styleClass="matrix-grid-title" text="Label" />
-               <Pane fx:id="paneChartMoyenne" layoutX="903.0" layoutY="90.0" prefHeight="250.0" prefWidth="400.0">
-                  <children>
-                     <Label layoutX="171.0" layoutY="-11.0" text="La Moyenne X̄">
-                        <font>
-                           <Font name="System Bold" size="16.0" />
-                        </font>
-                     </Label>
-                  </children>
-               </Pane>
-               <Pane prefHeight="200.0" prefWidth="200.0" />
-               <Pane fx:id="paneChartEtenduR" layoutX="903.0" layoutY="394.0" prefHeight="206.0" prefWidth="400.0">
-                  <children>
-                     <Label layoutX="187.0" layoutY="-11.0" text="L'étendu R">
-                        <font>
-                           <Font name="System Bold" size="16.0" />
-                        </font>
-                     </Label>
-                  </children>
-               </Pane>
+               <Pane fx:id="paneChartMoyenne" layoutX="903.0" layoutY="100.0" prefHeight="200.0" prefWidth="400.0" />
+               <Pane fx:id="paneChartEtenduR" layoutX="903.0" layoutY="425.0" prefHeight="180.0" prefWidth="400.0" />
+               <Label layoutX="1110.0" layoutY="400.0" text="L'étendu R">
+                  <font>
+                     <Font name="System Bold" size="16.0" />
+                  </font>
+               </Label>
             </children>
          </AnchorPane>
       </center>

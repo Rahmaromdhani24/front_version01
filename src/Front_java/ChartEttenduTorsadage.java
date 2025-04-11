@@ -40,7 +40,7 @@ public class ChartEttenduTorsadage extends Application {
         root.setPadding(new Insets(20));
 
         // Charge les données et affiche le chart une fois terminé
-        chargerTorsadagesParPdekEtPage(root);
+       // chargerTorsadagesParPdekEtPage(root);
 
         Scene scene = new Scene(root, 300, 200);
         primaryStage.setScene(scene);
@@ -48,7 +48,7 @@ public class ChartEttenduTorsadage extends Application {
         primaryStage.show();
     }
 
-    public static StackPane createEtenduChartTorsadageWithZones(List<TorsadageReponse> torsadages) {
+    public static StackPane createEtenduChartTorsadageWithZones(String numCourant , int etendu) {
     	
         double pas = 0.3;
         CategoryAxis xAxis = new CategoryAxis();
@@ -61,9 +61,9 @@ public class ChartEttenduTorsadage extends Application {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
 
         // Remplir les données depuis la liste
-        for (TorsadageReponse s : torsadages) {
-            series.getData().add(new XYChart.Data<>(String.valueOf(s.getNumeroCycle()), s.getEtendu()));
-        }
+      
+        series.getData().add(new XYChart.Data<>(numCourant, etendu));
+        
 
         chart.getData().add(series);
 
@@ -150,7 +150,7 @@ public class ChartEttenduTorsadage extends Application {
     }
     /*********************************************************************************************************************/
 
-    public static void chargerTorsadagesParPdekEtPage(VBox root) {
+  /*  public static void chargerTorsadagesParPdekEtPage(VBox root) {
         Task<List<TorsadageReponse>> task = new Task<>() {
             @Override
             protected List<TorsadageReponse> call() throws Exception {
@@ -188,6 +188,6 @@ public class ChartEttenduTorsadage extends Application {
         });
 
         new Thread(task).start();
-    }
+    }*/
 
 }

@@ -36,6 +36,9 @@ public class OperateurInfo {
     @JsonProperty("operation")
     private String operation;
 
+    @JsonProperty("email")
+    private String email;
+    
     @Override
     public String toString() {
         return "OperateurInfo {" + "\n" +

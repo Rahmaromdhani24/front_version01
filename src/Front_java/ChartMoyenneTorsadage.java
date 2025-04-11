@@ -39,7 +39,7 @@ public class ChartMoyenneTorsadage extends Application {
         root.setPadding(new Insets(20));
 
         // Charge les données et affiche le chart une fois terminé
-        chargerTorsadagesParPdekEtPage(root);
+       // chargerTorsadagesParPdekEtPage(root);
 
         Scene scene = new Scene(root, 300, 200);
         primaryStage.setScene(scene);
@@ -47,11 +47,11 @@ public class ChartMoyenneTorsadage extends Application {
         primaryStage.show();
     }
 
-    public static StackPane createMoyenneChartTorsadageWithZones(List<TorsadageReponse> torsadages) {
-    	
-    	int pas = extraireNombre(TorsadageInformations.specificationsMesure) ; 
+    public static StackPane createMoyenneChartTorsadageWithZones(String numCourant , double moyenne) {
+
+        int pas = extraireNombre(TorsadageInformations.specificationsMesure); 
         CategoryAxis xAxis = new CategoryAxis();
-        NumberAxis yAxis = new NumberAxis((pas-2)-1, (pas+2)+1, 0.2);
+        NumberAxis yAxis = new NumberAxis((pas - 2) - 1, (pas + 2) + 1, 0.2);
 
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);
@@ -59,10 +59,7 @@ public class ChartMoyenneTorsadage extends Application {
         chart.setPrefSize(460, 300);  // Taille spécifique
         XYChart.Series<String, Number> series = new XYChart.Series<>();
 
-        // Remplir les données depuis la liste
-        for (TorsadageReponse s : torsadages) {
-            series.getData().add(new XYChart.Data<>(String.valueOf(s.getNumeroCycle()), s.getMoyenne()));
-        }
+        series.getData().add(new XYChart.Data<>(numCourant, moyenne));
 
         chart.getData().add(series);
 
@@ -76,6 +73,7 @@ public class ChartMoyenneTorsadage extends Application {
     }
 
 
+
     public static void drawZones(StackPane stackPane, LineChart<String, Number> chart, NumberAxis yAxis) {
         Node plotBackground = chart.lookup(".chart-plot-background");
         if (plotBackground == null) return;
@@ -86,11 +84,11 @@ public class ChartMoyenneTorsadage extends Application {
         double chartWidth = plotBounds.getWidth();
         double chartHeight = plotBounds.getHeight();
 
-        double yLowRed    = yAxis.getDisplayPosition(pas - 2);
-        double yLowYellow = yAxis.getDisplayPosition(pas - 0.8);
-        double yPas       = yAxis.getDisplayPosition(pas);
-        double yHighYellow= yAxis.getDisplayPosition(pas + 0.8);
-        double yHighRed   = yAxis.getDisplayPosition(pas + 2);
+        double yLowRed    = yAxis.getDisplayPosition(pas - 2); //18
+        double yLowYellow = yAxis.getDisplayPosition((pas -2)+ 0.8);//
+        double yPas       = yAxis.getDisplayPosition(pas); //
+        double yHighYellow= yAxis.getDisplayPosition((pas +2)- 0.8); //
+        double yHighRed   = yAxis.getDisplayPosition(pas + 2); //
 
         double yAxisPosition = plotBounds.getMinY();
         double horizontalOffset = 40;
@@ -139,7 +137,7 @@ public class ChartMoyenneTorsadage extends Application {
     }
     /*********************************************************************************************************************/
 
-    public static void chargerTorsadagesParPdekEtPage(VBox root) {
+   /* public static void chargerTorsadagesParPdekEtPage(VBox root) {
         Task<List<TorsadageReponse>> task = new Task<>() {
             @Override
             protected List<TorsadageReponse> call() throws Exception {
@@ -177,6 +175,6 @@ public class ChartMoyenneTorsadage extends Application {
         });
 
         new Thread(task).start();
-    }
+    }*/
 
 }

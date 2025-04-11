@@ -43,7 +43,7 @@ public class ChartHauteurSertissageNormal extends Application {
         root.setPadding(new Insets(20));
 
         // Charge les données et affiche le chart une fois terminé
-        chargerSertissagesParPdekEtPage(root);
+        //chargerSertissagesParPdekEtPage(root);
 
 
         Scene scene = new Scene(root, 600, 450);
@@ -54,62 +54,73 @@ public class ChartHauteurSertissageNormal extends Application {
       
     }
 
-    public static StackPane createChartWithZones(List<SertissageNormalReponse> sertissages) {
+    public static StackPane createChartWithZones(double y1a, double y1b, double y1c, double y1d) {
         CategoryAxis xAxis = new CategoryAxis();
-        double rouge1Min = SertissageNormaleInformations.labelHauteurSertissage - 0.07; 
-        double rouge1Max = SertissageNormaleInformations.labelHauteurSertissage - 0.05;
-        
-        double jaune1Min = SertissageNormaleInformations.labelHauteurSertissage - 0.05; 
-        double jaune1Max = jaune1Min + 0.03; 
-        
-        double vertMin = jaune1Max; 
-        double vertMax = SertissageNormaleInformations.labelHauteurSertissage + 0.02; 
-        
-        double jaune2Min = vertMax; 
-        double jaune2Max = SertissageNormaleInformations.labelHauteurSertissage + 0.05; 
-        
-        double rouge2Min = jaune2Max; 
-        double rouge2Max = SertissageNormaleInformations.labelHauteurSertissage + 0.07; 
-        
-        NumberAxis yAxis = new NumberAxis(rouge1Min, rouge2Max, 0.01); // Limites verticales de 1.00 à 2.00 avec un pas plus petit
+        double rouge1Min = SertissageNormaleInformations.labelHauteurSertissage - 0.07;
+        double rouge2Max = SertissageNormaleInformations.labelHauteurSertissage + 0.07;
 
+        NumberAxis yAxis = new NumberAxis(rouge1Min, rouge2Max, 0.01);
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
-        chart.setLegendVisible(true);
+        chart.setLegendVisible(false); // Masque toute la légende
         chart.setAnimated(false);
-        chart.setPrefSize(450, 400);
+        chart.setPrefSize(420, 400);
 
-        // Création des séries pour chaque hauteur
+        // Série fantôme pour relier les points
+        XYChart.Series<String, Number> seriesLineConnector = new XYChart.Series<>();
+        seriesLineConnector.setName(""); 
+        seriesLineConnector.getData().add(new XYChart.Data<>("Échantillon 1", y1a));
+        seriesLineConnector.getData().add(new XYChart.Data<>("Échantillon 2", y1b));
+        seriesLineConnector.getData().add(new XYChart.Data<>("Échantillon 3", y1c));
+        seriesLineConnector.getData().add(new XYChart.Data<>("Fin Cde", y1d));
+
+        // Séries de points individuels (sans nom)
         XYChart.Series<String, Number> seriesHauteurEch1 = new XYChart.Series<>();
-        seriesHauteurEch1.setName("Échantillon 1");
+        seriesHauteurEch1.setName("");
+        seriesHauteurEch1.getData().add(new XYChart.Data<>("Échantillon 1", y1a));
+
         XYChart.Series<String, Number> seriesHauteurEch2 = new XYChart.Series<>();
-        seriesHauteurEch2.setName("Échantillon 2");
+        seriesHauteurEch2.setName("");
+        seriesHauteurEch2.getData().add(new XYChart.Data<>("Échantillon 2", y1b));
+
         XYChart.Series<String, Number> seriesHauteurEch3 = new XYChart.Series<>();
-        seriesHauteurEch3.setName("Échantillon 3");
+        seriesHauteurEch3.setName("");
+        seriesHauteurEch3.getData().add(new XYChart.Data<>("Échantillon 3", y1c));
+
         XYChart.Series<String, Number> seriesHauteurEchFin = new XYChart.Series<>();
-        seriesHauteurEchFin.setName("Fin Cde");
+        seriesHauteurEchFin.setName("");
+        seriesHauteurEchFin.getData().add(new XYChart.Data<>("Fin Cde", y1d));
 
-        // Remplir les données depuis la liste
-        for (SertissageNormalReponse s : sertissages) {
-            // Créez des points pour chaque cycle
-            String cycle = String.valueOf(s.getNumCycle()); // Utiliser le num de cycle comme X
-            seriesHauteurEch1.getData().add(new XYChart.Data<>(cycle, s.getHauteurSertissageEch1()));
-            seriesHauteurEch2.getData().add(new XYChart.Data<>(cycle, s.getHauteurSertissageEch2()));
-            seriesHauteurEch3.getData().add(new XYChart.Data<>(cycle, s.getHauteurSertissageEch3()));
-            seriesHauteurEchFin.getData().add(new XYChart.Data<>(cycle, s.getHauteurSertissageEchFin()));
-        }
+        // Ajout des séries au graphique
+        chart.getData().addAll(
+            seriesLineConnector,
+            seriesHauteurEch1,
+            seriesHauteurEch2,
+            seriesHauteurEch3,
+            seriesHauteurEchFin
+        );
 
-        // Ajouter les séries au graphique
-        chart.getData().addAll(seriesHauteurEch1, seriesHauteurEch2, seriesHauteurEch3, seriesHauteurEchFin);
+        // Appliquer la couleur bleue à tous les éléments une fois la scène chargée
+        chart.applyCss();
+        chart.getData().forEach(series -> {
+            series.getNode().setStyle("-fx-stroke: blue;");
+
+            for (XYChart.Data<String, Number> data : series.getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-background-color: blue, blue;");
+                }
+            }
+        });
 
         StackPane stackPane = new StackPane(chart);
 
-        // Dessiner les zones colorées
         chart.lookup(".chart-plot-background").boundsInParentProperty().addListener((obs, oldVal, newVal) -> {
             Platform.runLater(() -> drawZones(stackPane, chart, yAxis));
         });
 
         return stackPane;
     }
+
+
 
     public static void drawZones(StackPane stackPane, LineChart<String, Number> chart, NumberAxis yAxis) {
         // Limites des zones colorées
@@ -181,7 +192,7 @@ public class ChartHauteurSertissageNormal extends Application {
     }
     /*********************************************************************************************************************/
 
-    public static void chargerSertissagesParPdekEtPage(VBox root) {
+  /*  public static void chargerSertissagesParPdekEtPage(VBox root) {
         Task<List<SertissageNormalReponse>> task = new Task<>() {
             @Override
             protected List<SertissageNormalReponse> call() throws Exception {
@@ -219,7 +230,7 @@ public class ChartHauteurSertissageNormal extends Application {
         });
 
         new Thread(task).start();
-    }
+    }*/
 
 }
 

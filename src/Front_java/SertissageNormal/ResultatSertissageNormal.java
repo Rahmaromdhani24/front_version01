@@ -8,18 +8,15 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-
-import Front_java.ChartEttenduTorsadage;
 import Front_java.ChartHauteurSertissageNormal;
-import Front_java.ChartMoyenneTorsadage;
 import Front_java.Configuration.AppInformations;
-import Front_java.Configuration.SertissageNormalReponse;
+import Front_java.Configuration.EmailRequest;
+import Front_java.Configuration.EmailValidationPdek;
+import Front_java.Configuration.SertissageIDCInformations;
 import Front_java.Configuration.SertissageNormaleInformations;
-import Front_java.Configuration.TorsadageInformations;
-import Front_java.Configuration.TorsadageReponse;
-import Front_java.Configuration.TorsadageResult;
 import Front_java.Modeles.OperateurInfo;
 import Front_java.Modeles.SertissageNormalData;
+import Front_java.Modeles.UserDTO;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -39,9 +36,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jfoenix.controls.JFXButton;
@@ -192,7 +189,10 @@ public class ResultatSertissageNormal {
 		
 	@FXML
 	public void initialize(){
-		
+		testerHauteurSertissageNormal(SertissageNormaleInformations.hauteurSertissageEch1 ,
+        		SertissageNormaleInformations.hauteurSertissageEch2 ,
+        		SertissageNormaleInformations.hauteurSertissageEch3 ,
+        		SertissageNormaleInformations.hauteurSertissageEchFin) ; 
 		ajouterPdekAvecSertissageNormal() ;
 		initialiserDonneesPDEKEnregistrer() ; 
 		afficherInfosOperateur();
@@ -201,9 +201,18 @@ public class ResultatSertissageNormal {
 		afficherDateSystem();
 		afficherHeureSystem();
 
+		   // Une fois les données récupérées, créer le graphique
+        StackPane moyenneChartWithZones =  ChartHauteurSertissageNormal.createChartWithZones(
+        		SertissageNormaleInformations.hauteurSertissageEch1 ,
+        		SertissageNormaleInformations.hauteurSertissageEch2 ,
+        		SertissageNormaleInformations.hauteurSertissageEch3 ,
+        		SertissageNormaleInformations.hauteurSertissageEchFin
+        		);
+        paneChartSertissageNormal.getChildren().clear(); // au cas où il y a un ancien graphique
+        paneChartSertissageNormal.getChildren().add(moyenneChartWithZones);
 
 	}
-	 private void chargerSertissagesParPdekEtPage() {
+	/* private void chargerSertissagesParPdekEtPage() {
 	        Task<List<SertissageNormalReponse>> task = new Task<>() {
 	            @Override
 	            protected List<SertissageNormalReponse> call() throws Exception {
@@ -237,11 +246,7 @@ public class ResultatSertissageNormal {
 	            List<SertissageNormalReponse> reponses = task.getValue();
 	           
 
-	            // Une fois les données récupérées, créer le graphique
-	            StackPane moyenneChartWithZones =  ChartHauteurSertissageNormal.createChartWithZones(reponses);
-	            paneChartSertissageNormal.getChildren().clear(); // au cas où il y a un ancien graphique
-	            paneChartSertissageNormal.getChildren().add(moyenneChartWithZones);
-
+	         
 	       
 	        });
 
@@ -250,7 +255,7 @@ public class ResultatSertissageNormal {
 	        });
 
 	        new Thread(task).start();
-	    }
+	    }*/
 public void initialiserDonneesPDEKEnregistrer() {
 		
 		nbrCycle.setText(SertissageNormaleInformations.numCycle+"" );
@@ -582,46 +587,46 @@ public void initialiserDonneesPDEKEnregistrer() {
 
 	
 	private void showWarningDialog(String title, String message) {
-		Image warningIcon = new Image(getClass().getResource("/warning.png").toExternalForm());
-		ImageView warningImageView = new ImageView(warningIcon);
-		warningImageView.setFitWidth(100);
-		warningImageView.setFitHeight(100);
+ 		Image warningIcon = new Image(getClass().getResource("/warning.jpg").toExternalForm());
+ 		ImageView warningImageView = new ImageView(warningIcon);
+ 		warningImageView.setFitWidth(150);
+ 		warningImageView.setFitHeight(150);
 
-		VBox iconBox = new VBox(warningImageView);
-		iconBox.setAlignment(Pos.CENTER);
+ 		VBox iconBox = new VBox(warningImageView);
+ 		iconBox.setAlignment(Pos.CENTER);
 
-		Label messageLabel = new Label(message);
-		messageLabel.setWrapText(true);
-		messageLabel.setStyle("-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-alignment: center;");
+ 		Label messageLabel = new Label(message);
+ 		messageLabel.setWrapText(true);
+ 		messageLabel.setStyle("-fx-font-size: 19px; -fx-font-weight: bold; -fx-text-alignment: center; -fx-text-fill: black;");
 
-		Label titleLabel = new Label(title);
-		titleLabel.setStyle("-fx-font-size: 19px; -fx-text-alignment: center;");
-		VBox titleBox = new VBox(titleLabel);
-		titleBox.setAlignment(Pos.CENTER);
+ 		Label titleLabel = new Label(title);
+ 		titleLabel.setStyle("-fx-font-size: 19px; -fx-text-alignment: center;");
+ 		VBox titleBox = new VBox(titleLabel);
+ 		titleBox.setAlignment(Pos.CENTER);
 
-		VBox contentBox = new VBox(10, iconBox, messageLabel, titleBox);
-		contentBox.setAlignment(Pos.CENTER);
+ 		VBox contentBox = new VBox(10, iconBox, messageLabel, titleBox);
+ 		contentBox.setAlignment(Pos.CENTER);
 
-		JFXDialogLayout content = new JFXDialogLayout();
-		content.setBody(contentBox);
-		content.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
+ 		JFXDialogLayout content = new JFXDialogLayout();
+ 		content.setBody(contentBox);
+ 		content.setStyle("-fx-background-color: white; -fx-background-radius: 10;");
 
-		JFXButton closeButton = new JFXButton("Fermer");
-		closeButton.setStyle("-fx-font-size: 19px; -fx-padding: 10px 20px; -fx-font-weight: bold;");
-		content.setActions(closeButton);
+ 		JFXButton closeButton = new JFXButton("Fermer");
+ 		closeButton.setStyle("-fx-font-size: 19px; -fx-padding: 10px 20px; -fx-font-weight: bold;");
+ 		content.setActions(closeButton);
 
-		JFXDialog dialog = new JFXDialog(stackPane, content, JFXDialog.DialogTransition.CENTER);
-		closeButton.setOnAction(e -> dialog.close());
+ 		JFXDialog dialog = new JFXDialog(stackPane, content, JFXDialog.DialogTransition.CENTER);
+ 		closeButton.setOnAction(e -> dialog.close());
 
-		dialog.show();
+ 		dialog.show();
 
-		Platform.runLater(() -> {
-			StackPane overlayPane = (StackPane) dialog.lookup(".jfx-dialog-overlay-pane");
-			if (overlayPane != null) {
-				overlayPane.setStyle("-fx-background-color: transparent;");
-			}
-		});
-	}
+ 		Platform.runLater(() -> {
+ 			StackPane overlayPane = (StackPane) dialog.lookup(".jfx-dialog-overlay-pane");
+ 			if (overlayPane != null) {
+ 				overlayPane.setStyle("-fx-background-color: transparent;");
+ 			}
+ 		});
+ 	}
 	/********************************************* Ajout PDEK  ***************************************************************/
 	private void ajouterPdekAvecSertissageNormal() {
 		Task<Void> task = new Task<>() {
@@ -698,6 +703,8 @@ public void initialiserDonneesPDEKEnregistrer() {
 					    numPageSertissageNormalGlobale = num;
 					    System.out.println("idPdekTorsadageGlobale  methode add :"+idPdekSertissageNormalGlobale) ; 
 					    System.out.println("numPageTorsadageGlobale methode add :"+numPageSertissageNormalGlobale) ; 
+						sendMailValidationPDEK() ; 
+
 					} else {
 						System.out.println("Erreur dans l'ajout PDEK, code : " + response.statusCode() + ", message : "
 								+ response.body());
@@ -720,7 +727,7 @@ public void initialiserDonneesPDEKEnregistrer() {
 		task.setOnSucceeded(event -> {
 		    // Ces méthodes s'exécutent uniquement quand l'ajout est réussi
 		   
-		    chargerSertissagesParPdekEtPage() ; 
+		  //  chargerSertissagesParPdekEtPage() ; 
 		});
 		new Thread(task).start();
 	}
@@ -847,4 +854,455 @@ public void initialiserDonneesPDEKEnregistrer() {
             return "Erreur de connexion à l'API";
         }
     }
+	/***************************** Envoie mail de validation de pdek *****************************/
+ 	public void sendMailValidationPDEK() {
+ 	    Task<Void> task = new Task<Void>() {
+ 	        @Override
+ 	        protected Void call() throws Exception {
+ 	            try {
+ 	                EmailValidationPdek request = new EmailValidationPdek();
+ 	                List<UserDTO> listeAgentsQualite = fetchAgentsQualiteByPlant();
+ 	                System.out.println("Agents qualité récupérés : " + listeAgentsQualite);
+
+ 	                for (UserDTO agent : listeAgentsQualite) {
+ 	                    request.setToEmail(agent.getEmail());
+ 	                    request.setNomResponsable(agent.getPrenom() + " " + agent.getNom());
+ 	                    request.setLocalisation("Plant :" + AppInformations.operateurInfo.getPlant() + " , Segment : " + AppInformations.operateurInfo.getSegment());
+ 	                    request.setNomProcess(AppInformations.operateurInfo.getOperation());
+ 	                    request.setSectionFil(SertissageNormaleInformations.sectionFil);
+ 	                    request.setPosteMachine(AppInformations.operateurInfo.getPoste() + " /" + AppInformations.operateurInfo.getMachine());
+ 	                    request.setDateRemplissage(LocalDate.now()+"");
+ 	                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+ 	                    String formattedTime = LocalTime.now().format(formatter);
+ 	                  request.setHeureRemplissage(formattedTime);		 	                }
+
+ 	                HttpClient client = HttpClient.newHttpClient();
+ 	                ObjectMapper objectMapper = new ObjectMapper();
+ 	                String requestBody = objectMapper.writeValueAsString(request);
+
+ 	                HttpRequest httpRequest = HttpRequest.newBuilder()
+ 	                        .uri(URI.create("http://localhost:8281/admin/validerPdekAgentQualite"))
+ 	                        .header("Content-Type", "application/json")
+ 	                        .header("Authorization", "Bearer " + AppInformations.token) // Ajout du token ici
+ 	                        .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+ 	                        .build();
+
+ 	                HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+ 	                // Vérification de la réponse HTTP
+ 	                if (response.statusCode() == 202) {
+ 	                    System.out.println("✅ Email d'alerte envoyée avec succès.");
+ 	                } else if (response.statusCode() == 403) {
+ 	                    // Analyser et afficher la réponse détaillée en cas de 403
+ 	                    System.out.println("❌ Échec de l'envoi de l'alerte (accès refusé).");
+ 	                    System.out.println("Détails de l'erreur 403: " + response.body()); // Affiche le contenu du corps de la réponse
+ 	                } else {
+ 	                    System.out.println("⚠️ Erreur lors de l'envoi : code = " + response.statusCode());
+ 	                    System.out.println("Réponse serveur : " + response.body());
+ 	                }
+
+ 	            } catch (Exception e) {
+ 	                System.out.println("Erreur technique interne.");
+ 	                e.printStackTrace(); // Pour logs dev
+ 	            }
+ 	            return null;
+ 	        }
+ 	    };
+
+ 	    new Thread(task).start();
+ 	}
+	/******************************* Recuperer agents des qualite par plant *****************/
+ 	public List<UserDTO> fetchAgentsQualiteByPlant() {
+ 	    List<UserDTO> operateurs = new ArrayList<>();
+
+ 	    try {
+ 	        // 🔐 Récupérer le token depuis AppInformations
+ 	        String token = AppInformations.token;
+
+ 	        HttpClient client = HttpClient.newHttpClient();
+ 	        HttpRequest request = HttpRequest.newBuilder()
+ 	                .uri(URI.create("http://localhost:8281/operateur/AgentQualiteParPlant?nomPlant=" + AppInformations.operateurInfo.getPlant()))
+ 	                .header("Authorization", "Bearer " + token) // Ajout du token dans le header
+ 	                .build();
+
+ 	        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+ 	        if (response.statusCode() == 200) {
+ 	            ObjectMapper objectMapper = new ObjectMapper();
+ 	            operateurs = objectMapper.readValue(
+ 	                    response.body(),
+ 	                    objectMapper.getTypeFactory().constructCollectionType(List.class, UserDTO.class)
+ 	            );
+ 	            System.out.println("Liste des agents : " + operateurs);
+ 	        } else {
+ 	            System.err.println("Erreur HTTP: " + response.statusCode());
+ 	        }
+
+ 	    } catch (Exception e) {
+ 	        e.printStackTrace();
+ 	    }
+
+ 	    return operateurs;
+ 	}
+
+ 	public List<UserDTO> fetchChefDesLignesByPlantAndSegment() {
+ 	    List<UserDTO> operateurs = new ArrayList<>();
+
+ 	    try {
+ 	        // 🔐 Récupérer le token depuis AppInformations
+ 	        String token = AppInformations.token;
+
+ 	        HttpClient client = HttpClient.newHttpClient();
+ 	        HttpRequest request = HttpRequest.newBuilder()
+ 	                .uri(URI.create("http://localhost:8281/operateur/ChefLigneParPlantEtSegment?nomPlant=" + AppInformations.operateurInfo.getPlant()+
+ 	                		"&segment="+AppInformations.operateurInfo.getSegment()
+ 	                		+"&operation="+AppInformations.operateurInfo.getOperation()))
+ 	                .header("Authorization", "Bearer " + token) // Ajout du token dans le header
+ 	                .build();
+
+ 	        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+ 	        if (response.statusCode() == 200) {
+ 	            ObjectMapper objectMapper = new ObjectMapper();
+ 	            operateurs = objectMapper.readValue(
+ 	                    response.body(),
+ 	                    objectMapper.getTypeFactory().constructCollectionType(List.class, UserDTO.class)
+ 	            );
+ 	            System.out.println("Liste des agents : " + operateurs);
+ 	        } else {
+ 	            System.err.println("Erreur HTTP: " + response.statusCode());
+ 	        }
+
+ 	    } catch (Exception e) {
+ 	        e.printStackTrace();
+ 	    }
+
+ 	    return operateurs;
+ 	}
+ 	/***************************************** tester hauteur de sertissage ***************************************************/
+	 public void testerHauteurSertissageNormal(double ech1 , double ech2 , double ech3 , double echFin){// 1.25  1.28  1.28  1.28
+	    double ideal = SertissageNormaleInformations.labelHauteurSertissage ; //1.25
+		double min = SertissageNormaleInformations.labelHauteurSertissage - 0.05 ; //1.20
+		double max = SertissageNormaleInformations.labelHauteurSertissage + 0.05 ; //1.30
+        double maxJaune =(ideal -0.02) ;  //1.23
+        double minJaune2 =(ideal + 0.02) ; //1.27
+
+        if(ech1 <= min ||ech2 <= min ||  ech3 <= min ||  echFin <= min) {
+		    Platform.runLater(() -> {
+	            showErrorDialog("Une des valeurs mesureés des échantillons dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
+	                + AppInformations.operateurInfo.getPrenom() + " " 
+	                + AppInformations.operateurInfo.getNom() 
+	                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage");
+	    	    });
+			List<Double> valeursNonConformes = new ArrayList<>();
+			if (ech1 <= min ) valeursNonConformes.add(ech1);
+			if (ech2 <= min ) valeursNonConformes.add(ech2);
+			if (ech3 <= min ) valeursNonConformes.add( ech3);
+			if (echFin <= min ) valeursNonConformes.add(echFin);
+			
+			sendErrorNotificationEmailToAgentQualiter( joinValeursAvecPointVirgule(valeursNonConformes), "Supérieur à " + (ideal-0.02)+" et inférieur à " + (ideal + 0.02)) ; 
+			sendErrorNotificationEmailToChefDeLigne( joinValeursAvecPointVirgule(valeursNonConformes), "Supérieur à " + (ideal-0.02)+" et inférieur à " + (ideal + 0.02)) ; 
+		}
+		if(ech1 >= max ||ech2 >=  max  ||  ech3 >= max ||  echFin >=  max) {
+		    Platform.runLater(() -> {
+	            showErrorDialog("Une des valeurs mesureés des échantillons  dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
+	                + AppInformations.operateurInfo.getPrenom() + " " 
+	                + AppInformations.operateurInfo.getNom() 
+	                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage ");
+	    	    });
+		    
+			List<Double> valeursNonConformes = new ArrayList<>();
+			if (ech1 >= max ) valeursNonConformes.add(ech1);
+			if (ech2 >= max ) valeursNonConformes.add(ech2);
+			if (ech3 >= max ) valeursNonConformes.add( ech3);
+			if (echFin >= max ) valeursNonConformes.add(echFin);
+			
+			sendErrorNotificationEmailToAgentQualiter( joinValeursAvecPointVirgule(valeursNonConformes), "Supérieur à " + (ideal-0.02)+" et inférieur à " + (ideal + 0.02)) ; 
+			sendErrorNotificationEmailToChefDeLigne( joinValeursAvecPointVirgule(valeursNonConformes),"Supérieur à " + (ideal-0.02)+" et inférieur à " + (ideal + 0.02)) ; 
+
+		}
+		if((ech1 <= maxJaune  && ech1 > min ) ||(ech2 <= maxJaune  && ech2 > min ) || (ech3 <= maxJaune  && ech3 > min) ||  (echFin <= maxJaune && echFin > min)) {
+		    Platform.runLater(() -> {
+	            showWarningDialog("Une des valeurs mesureés des échantillons dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
+	                + AppInformations.operateurInfo.getPrenom() + " " 
+	                + AppInformations.operateurInfo.getNom() 
+	                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage");
+	    	    });
+		    
+		    List<Double> valeursNonConformes = new ArrayList<>();
+			if (ech1 <= maxJaune && ech1 > min ) valeursNonConformes.add(ech1);
+			if (ech2 <= maxJaune && ech2 > min ) valeursNonConformes.add(ech2);
+			if (ech3 <= maxJaune && ech3 > min ) valeursNonConformes.add( ech3);
+			if (echFin <= maxJaune && echFin > min) valeursNonConformes.add(echFin);
+			
+			sendWarningNotificationEmailToAgentQualiter( joinValeursAvecPointVirgule(valeursNonConformes),  "Supérieur à " + (ideal-0.02)+" et inférieur à " + (ideal + 0.02)) ; 
+			sendWarningNotificationEmailToChefDeLigne( joinValeursAvecPointVirgule(valeursNonConformes), "Supérieur à " + (ideal-0.02)+" et inférieur à " + (ideal + 0.02)) ; 
+		    
+	 }
+		if((ech1 < max  && ech1 > minJaune2 ) ||(ech2 < max  && ech2 > minJaune2 ) || (ech3 < max  && ech3 > minJaune2) ||  (echFin < max && echFin > minJaune2)) {
+		    Platform.runLater(() -> {
+	            showWarningDialog("Une des valeurs mesureés des échantillons dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
+	                + AppInformations.operateurInfo.getPrenom() + " " 
+	                + AppInformations.operateurInfo.getNom() 
+	                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage");
+	    	    });
+		    
+		    List<Double> valeursNonConformes = new ArrayList<>();
+			if (ech1 < max && ech1 > minJaune2 ) valeursNonConformes.add(ech1);
+			if (ech2 < max && ech2 > minJaune2 ) valeursNonConformes.add(ech2);
+			if (ech3 < max && ech3 > minJaune2 ) valeursNonConformes.add( ech3);
+			if (echFin < max && echFin > minJaune2) valeursNonConformes.add(echFin);
+			
+			sendWarningNotificationEmailToAgentQualiter( joinValeursAvecPointVirgule(valeursNonConformes),  "Supérieur à " + (ideal-0.02)+" et inférieur à " + (ideal + 0.02)) ; 
+			sendWarningNotificationEmailToChefDeLigne( joinValeursAvecPointVirgule(valeursNonConformes), "Supérieur à " + (ideal-0.02)+" et inférieur à " + (ideal + 0.02)) ; 
+		    
+	 }
+	 }
+		/***************************** Envoie mail erreur "Agent qualite" *****************************/
+	 	public void sendErrorNotificationEmailToAgentQualiter(String valeurMesurer, String limiteAcceptable) {
+	 	    Task<Void> task = new Task<Void>() {
+	 	        @Override
+	 	        protected Void call() throws Exception {
+	 	            try {
+	 	                EmailRequest request = new EmailRequest();
+	 	                List<UserDTO> listeAgentsQualite = fetchAgentsQualiteByPlant();
+	 	                System.out.println("Agents qualité récupérés : " + listeAgentsQualite);
+
+	 	                for (UserDTO agent : listeAgentsQualite) {
+	 	                    request.setToEmail(agent.getEmail());
+	 	                    request.setNomResponsable(agent.getPrenom() + " " + agent.getNom());
+	 	                    request.setLocalisation("Plant :" + AppInformations.operateurInfo.getPlant() + " , Segment : " + AppInformations.operateurInfo.getSegment());
+	 	                    request.setNomProcess(AppInformations.operateurInfo.getOperation());
+	 	                    request.setSectionFil(SertissageIDCInformations.sectionFilSelectionner);
+	 	                    request.setPosteMachine(AppInformations.operateurInfo.getPoste() + " /" + AppInformations.operateurInfo.getMachine());
+	 	                    request.setValeurMesuree(valeurMesurer);
+	 	                    request.setLimitesAcceptables(limiteAcceptable);
+	 	                    request.setDescriptionErreur("Une des valeurs mesurées dépasse les limites de contrôle (zone rouge). L'opérateur applique l'arrêt de 1er défaut.");
+	 	                }
+
+	 	                HttpClient client = HttpClient.newHttpClient();
+	 	                ObjectMapper objectMapper = new ObjectMapper();
+	 	                String requestBody = objectMapper.writeValueAsString(request);
+
+	 	                HttpRequest httpRequest = HttpRequest.newBuilder()
+	 	                        .uri(URI.create("http://localhost:8281/admin/AgentQualiteSendMailErreur"))
+	 	                        .header("Content-Type", "application/json")
+	 	                        .header("Authorization", "Bearer " + AppInformations.token) // Ajout du token ici
+	 	                        .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+	 	                        .build();
+
+	 	                HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+	 	                // Vérification de la réponse HTTP
+	 	                if (response.statusCode() == 202) {
+	 	                    System.out.println("✅ Email d'alerte envoyée avec succès.");
+	 	                } else if (response.statusCode() == 403) {
+	 	                    // Analyser et afficher la réponse détaillée en cas de 403
+	 	                    System.out.println("❌ Échec de l'envoi de l'alerte (accès refusé).");
+	 	                    System.out.println("Détails de l'erreur 403: " + response.body()); // Affiche le contenu du corps de la réponse
+	 	                } else {
+	 	                    System.out.println("⚠️ Erreur lors de l'envoi : code = " + response.statusCode());
+	 	                    System.out.println("Réponse serveur : " + response.body());
+	 	                }
+
+	 	            } catch (Exception e) {
+	 	                System.out.println("Erreur technique interne.");
+	 	                e.printStackTrace(); // Pour logs dev
+	 	            }
+	 	            return null;
+	 	        }
+	 	    };
+
+	 	    new Thread(task).start();
+	 	}
+		/***************************** Envoie mail warning "Agent qualite" *****************************/
+	 	public void sendWarningNotificationEmailToAgentQualiter(String valeurMesurer, String limiteAcceptable) {
+	 	    Task<Void> task = new Task<Void>() {
+	 	        @Override
+	 	        protected Void call() throws Exception {
+	 	            try {
+	 	                EmailRequest request = new EmailRequest();
+	 	                List<UserDTO> listeAgentsQualite = fetchAgentsQualiteByPlant();
+	 	                System.out.println("Agents qualité récupérés : " + listeAgentsQualite);
+
+	 	                for (UserDTO agent : listeAgentsQualite) {
+	 	                    request.setToEmail(agent.getEmail());
+	 	                    request.setNomResponsable(agent.getPrenom() + " " + agent.getNom());
+	 	                    request.setLocalisation("Plant :" + AppInformations.operateurInfo.getPlant() + " , Segment : " + AppInformations.operateurInfo.getSegment());
+	 	                    request.setNomProcess(AppInformations.operateurInfo.getOperation());
+	 	                    request.setSectionFil(SertissageIDCInformations.sectionFilSelectionner);
+	 	                    request.setPosteMachine(AppInformations.operateurInfo.getPoste() + " /" + AppInformations.operateurInfo.getMachine());
+	 	                    request.setValeurMesuree(valeurMesurer);
+	 	                    request.setLimitesAcceptables(limiteAcceptable);
+	 	                    request.setDescriptionErreur("Une des valeurs mesurées des échantillons au démarrage  dépasse les limites d'alarme (zone jaune).");
+	 	                }
+
+	 	                HttpClient client = HttpClient.newHttpClient();
+	 	                ObjectMapper objectMapper = new ObjectMapper();
+	 	                String requestBody = objectMapper.writeValueAsString(request);
+
+	 	                HttpRequest httpRequest = HttpRequest.newBuilder()
+	 	                        .uri(URI.create("http://localhost:8281/admin/AgentQualiteSendMailWarning"))
+	 	                        .header("Content-Type", "application/json")
+	 	                        .header("Authorization", "Bearer " + AppInformations.token) // Ajout du token ici
+	 	                        .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+	 	                        .build();
+
+	 	                HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+	 	                // Vérification de la réponse HTTP
+	 	                if (response.statusCode() == 202) {
+	 	                    System.out.println("✅ Email d'alerte envoyée avec succès.");
+	 	                } else if (response.statusCode() == 403) {
+	 	                    // Analyser et afficher la réponse détaillée en cas de 403
+	 	                    System.out.println("❌ Échec de l'envoi de l'alerte (accès refusé).");
+	 	                    System.out.println("Détails de l'erreur 403: " + response.body()); // Affiche le contenu du corps de la réponse
+	 	                } else {
+	 	                    System.out.println("⚠️ Erreur lors de l'envoi : code = " + response.statusCode());
+	 	                    System.out.println("Réponse serveur : " + response.body());
+	 	                }
+
+	 	            } catch (Exception e) {
+	 	                System.out.println("Erreur technique interne.");
+	 	                e.printStackTrace(); // Pour logs dev
+	 	            }
+	 	            return null;
+	 	        }
+	 	    };
+
+	 	    new Thread(task).start();
+	 	}
+
+	 	/***************************** Envoie mail erreur "chef de ligne " *****************************/
+	 	public void sendErrorNotificationEmailToChefDeLigne(String valeurMesurer, String limiteAcceptable) {
+	 	    Task<Void> task = new Task<Void>() {
+	 	        @Override
+	 	        protected Void call() throws Exception {
+	 	            try {
+	 	                EmailRequest request = new EmailRequest();
+	 	                List<UserDTO> listeChefLignes = fetchChefDesLignesByPlantAndSegment();
+	 	                System.out.println("Agents qualité récupérés : " + listeChefLignes);
+
+	 	                for (UserDTO chefLigne : listeChefLignes) {
+	 	                    request.setToEmail(chefLigne.getEmail());
+	 	                    request.setNomResponsable(chefLigne.getPrenom() + " " + chefLigne.getNom());
+	 	                    request.setLocalisation("Plant :" + AppInformations.operateurInfo.getPlant() + " , Segment : " + AppInformations.operateurInfo.getSegment());
+	 	                    request.setNomProcess(AppInformations.operateurInfo.getOperation());
+	 	                    request.setSectionFil(SertissageIDCInformations.sectionFilSelectionner);
+	 	                    request.setPosteMachine(AppInformations.operateurInfo.getPoste() + " /" + AppInformations.operateurInfo.getMachine());
+	 	                    request.setValeurMesuree(valeurMesurer);
+	 	                    request.setLimitesAcceptables(limiteAcceptable);
+	 	                    request.setDescriptionErreur("Une des valeurs mesurées dépasse les limites de contrôle (zone rouge). L'opérateur applique l'arrêt de 1er défaut.");
+	 	                }
+
+	 	                HttpClient client = HttpClient.newHttpClient();
+	 	                ObjectMapper objectMapper = new ObjectMapper();
+	 	                String requestBody = objectMapper.writeValueAsString(request);
+
+	 	                HttpRequest httpRequest = HttpRequest.newBuilder()
+	 	                        .uri(URI.create("http://localhost:8281/admin/chefLigneSendMailErreur"))
+	 	                        .header("Content-Type", "application/json")
+	 	                        .header("Authorization", "Bearer " + AppInformations.token) // Ajout du token ici
+	 	                        .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+	 	                        .build();
+
+	 	                HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+	 	                // Vérification de la réponse HTTP
+	 	                if (response.statusCode() == 202) {
+	 	                    System.out.println("✅ Email d'alerte envoyée avec succès.");
+	 	                } else if (response.statusCode() == 403) {
+	 	                    // Analyser et afficher la réponse détaillée en cas de 403
+	 	                    System.out.println("❌ Échec de l'envoi de l'alerte (accès refusé).");
+	 	                    System.out.println("Détails de l'erreur 403: " + response.body()); // Affiche le contenu du corps de la réponse
+	 	                } else {
+	 	                    System.out.println("⚠️ Erreur lors de l'envoi : code = " + response.statusCode());
+	 	                    System.out.println("Réponse serveur : " + response.body());
+	 	                }
+
+	 	            } catch (Exception e) {
+	 	                System.out.println("Erreur technique interne.");
+	 	                e.printStackTrace(); // Pour logs dev
+	 	            }
+	 	            return null;
+	 	        }
+	 	    };
+
+	 	    new Thread(task).start();
+	 	}
+		/***************************** Envoie mail warning "chef de ligne" *****************************/
+	 	public void sendWarningNotificationEmailToChefDeLigne(String valeurMesurer, String limiteAcceptable) {
+	 	    Task<Void> task = new Task<Void>() {
+	 	        @Override
+	 	        protected Void call() throws Exception {
+	 	            try {
+	 	                EmailRequest request = new EmailRequest();
+	 	                List<UserDTO> listeChefLignes = fetchChefDesLignesByPlantAndSegment() ; 
+	 	                System.out.println("Agents qualité récupérés : " + listeChefLignes);
+
+	 	                for (UserDTO chefLigne : listeChefLignes) {
+	 	                    request.setToEmail(chefLigne.getEmail());
+	 	                    request.setNomResponsable(chefLigne.getPrenom() + " " + chefLigne.getNom());
+	 	                    request.setLocalisation("Plant :" + AppInformations.operateurInfo.getPlant() + " , Segment : " + AppInformations.operateurInfo.getSegment());
+	 	                    request.setNomProcess(AppInformations.operateurInfo.getOperation());
+	 	                    request.setSectionFil(SertissageIDCInformations.sectionFilSelectionner);
+	 	                    request.setPosteMachine(AppInformations.operateurInfo.getPoste() + " /" + AppInformations.operateurInfo.getMachine());
+	 	                    request.setValeurMesuree(valeurMesurer);
+	 	                    request.setLimitesAcceptables(limiteAcceptable);
+	 	                    request.setDescriptionErreur("Une des valeurs mesurées des échantillons au démarrage  dépasse les limites d'alarme (zone jaune).");
+	 	                }
+
+	 	                HttpClient client = HttpClient.newHttpClient();
+	 	                ObjectMapper objectMapper = new ObjectMapper();
+	 	                String requestBody = objectMapper.writeValueAsString(request);
+
+	 	                HttpRequest httpRequest = HttpRequest.newBuilder()
+	 	                        .uri(URI.create("http://localhost:8281/admin/chefLigneSendMailWarning"))
+	 	                        .header("Content-Type", "application/json")
+	 	                        .header("Authorization", "Bearer " + AppInformations.token) // Ajout du token ici
+	 	                        .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+	 	                        .build();
+
+	 	                HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+	 	                // Vérification de la réponse HTTP
+	 	                if (response.statusCode() == 202) {
+	 	                    System.out.println("✅ Email d'alerte envoyée avec succès.");
+	 	                } else if (response.statusCode() == 403) {
+	 	                    // Analyser et afficher la réponse détaillée en cas de 403
+	 	                    System.out.println("❌ Échec de l'envoi de l'alerte (accès refusé).");
+	 	                    System.out.println("Détails de l'erreur 403: " + response.body()); // Affiche le contenu du corps de la réponse
+	 	                } else {
+	 	                    System.out.println("⚠️ Erreur lors de l'envoi : code = " + response.statusCode());
+	 	                    System.out.println("Réponse serveur : " + response.body());
+	 	                }
+
+	 	            } catch (Exception e) {
+	 	                System.out.println("Erreur technique interne.");
+	 	                e.printStackTrace(); // Pour logs dev
+	 	            }
+	 	            return null;
+	 	        }
+	 	    };
+
+	 	    new Thread(task).start();
+	 	}
+
+	 /***************************/
+	 	public String joinValeursAvecPointVirgule(List<Double> valeurs) {
+	 	    StringBuilder sb = new StringBuilder();
+
+	 	    for (Double valeur : valeurs) {
+	 	        sb.append(valeur).append("; ");
+	 	    }
+
+	 	    // Supprimer le dernier "; " s'il existe
+	 	    if (sb.length() > 0) {
+	 	        sb.setLength(sb.length() - 2);
+	 	    }
+
+	 	    return sb.toString();
+	 	}
+
+
 }

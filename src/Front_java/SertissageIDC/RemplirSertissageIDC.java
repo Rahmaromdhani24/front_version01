@@ -11,8 +11,6 @@ import java.nio.charset.StandardCharsets;
 import Front_java.Configuration.ActiveTextFieldManager;
 import Front_java.Configuration.AppInformations;
 import Front_java.Configuration.SertissageIDCInformations;
-import Front_java.Configuration.SertissageNormaleInformations;
-import Front_java.Configuration.TorsadageInformations;
 import Front_java.Modeles.OperateurInfo;
 import Front_java.SertissageIDC.loading.LoadingSertissageIDC;
 import javafx.animation.Timeline;
@@ -34,7 +32,6 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
@@ -362,50 +359,15 @@ public class RemplirSertissageIDC {
 	            showErrorDialog("Les valeurs des échantillons de force de traction C2 doivent être différentes.", "");
 	            hasError = true;
 	        }
-	     // Vérification des valeurs hors limites
-	        List<TextField> hauteurFields = Arrays.asList(
-	            hauteurSertissageEch1C1, hauteurSertissageEch2C1, hauteurSertissageEch3C1, hauteurSertissageEchFinC1,
-	            hauteurSertissageEch1C2, hauteurSertissageEch2C2, hauteurSertissageEch3C2, hauteurSertissageEchFinC2
-	        );
-	        for (TextField field : hauteurFields) {
-	            try {
-	                double valeur = Double.parseDouble(field.getText());
-	                if (valeur < MIN_HAUTEUR || valeur > MAX_HAUTEUR) {
-	                    colorBorderRed(field);
-	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de sertissage est hors limites. Elle doit être entre " + MIN_HAUTEUR + " et " + MAX_HAUTEUR + ".", "");
-	                    hasError = true;
-	                }
-	            } catch (NumberFormatException e) {
-	                colorBorderRed(field);
-	                showErrorDialog("Veuillez entrer une valeur numérique valide pour " + field.getId() + ".", "");
-	                hasError = true;
-	            }
-	        }
-
-	        // Vérification des valeurs hors limites pour la force de traction
-	        List<TextField> tractionFields = Arrays.asList(
-	            forceTractionEch1C1, forceTractionEch2C1, forceTractionEch3C1, forceTractionEchFinC1,
-	            forceTractionEch1C2, forceTractionEch2C2, forceTractionEch3C2, forceTractionEchFinC2
-	        );
-	        for (TextField field : tractionFields) {
-	            try {
-	                int valeur = Integer.parseInt(field.getText());
-	                if (valeur < MIN_TRACTION || valeur > MAX_TRACTION) {
-	                    colorBorderRed(field);
-	                    showErrorDialog("La valeur " + valeur + " dans champs de traction est hors limites. Elle doit être entre " + MIN_TRACTION + " et " + MAX_TRACTION + ".", "");
-	                    hasError = true;
-	                }
-	            } catch (NumberFormatException e) {
-	                colorBorderRed(field);
-	                showErrorDialog("Veuillez entrer une valeur numérique valide pour " + field.getId() + ".", "");
-	                hasError = true;
-	            }
-	        }
-	        // Si une erreur a été détectée, arrêter l'exécution ici
-	        if (hasError) {
-	            return;
-	        }
-
+	        if (verifierValeursSertissagesFinale()) {
+        	    return; // stop si erreur détectée
+        	}
+        	if (verifierValeursTractionFinal()) {
+        	    return; // stop si erreur détectée
+        	}
+        	if (hasError) {
+        	    return;
+        	}
 	        // Aucune erreur => afficher la confirmation
 	        String message = "Veuillez confirmer les données saisies ? \n\n";
 
@@ -472,6 +434,12 @@ public class RemplirSertissageIDC {
                 }
             });
         } else {     
+        	if (verifierValeursSertissages()) {
+        	    return; // stop si erreur détectée
+        	}
+        	if (verifierValeursTraction()) {
+        	    return; // stop si erreur détectée
+        	}
         	  centerTextFields(
         		        hauteurSertissageEch1C1, hauteurSertissageEch2C1, hauteurSertissageEch3C1, 
         		        forceTractionEch1C1, forceTractionEch2C1, forceTractionEch3C1,hauteurSertissageEchFinC1 ,
@@ -617,8 +585,123 @@ public class RemplirSertissageIDC {
         }
 }
 	
+	private boolean verifierValeursTraction() {
+	    boolean erreur = false;
 
-	    
+	    List<TextField> tractionFields = Arrays.asList(
+	        forceTractionEch1C1, forceTractionEch2C1, forceTractionEch3C1,
+	        forceTractionEch1C2, forceTractionEch2C2, forceTractionEch3C2
+	    );
+
+	    for (TextField field : tractionFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	            try {
+	                int valeur = Integer.parseInt(field.getText());
+	                if (valeur < MIN_TRACTION || valeur > MAX_TRACTION) {
+	                    colorBorderRed(field);
+	                    showErrorDialog("La valeur " + valeur + " dans le champ de traction est hors limites. Elle doit être entre " + MIN_TRACTION + " et " + MAX_TRACTION + ".", "");
+	                    erreur = true;
+	                }
+	            } catch (NumberFormatException e) {
+	                colorBorderRed(field);
+	                showErrorDialog("Veuillez entrer une valeur numérique valide pour le champ de traction " + field.getId() + ".", "");
+	                erreur = true;
+	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+	private boolean verifierValeursTractionFinal() {
+	    boolean erreur = false;
+
+	    List<TextField> tractionFields = Arrays.asList(
+	        forceTractionEchFinC1 , forceTractionEchFinC2
+	    );
+
+	    for (TextField field : tractionFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	            try {
+	                int valeur = Integer.parseInt(field.getText());
+	                if (valeur < MIN_TRACTION || valeur > MAX_TRACTION) {
+	                    colorBorderRed(field);
+	                    showErrorDialog("La valeur " + valeur + " dans le champ de traction est hors limites. Elle doit être entre " + MIN_TRACTION + " et " + MAX_TRACTION + ".", "");
+	                    erreur = true;
+	                }
+	            } catch (NumberFormatException e) {
+	                colorBorderRed(field);
+	                showErrorDialog("Veuillez entrer une valeur numérique valide pour le champ de traction " + field.getId() + ".", "");
+	                erreur = true;
+	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+
+	private boolean verifierValeursSertissages() {
+	    boolean erreur = false;
+
+	    List<TextField> hauteurFields = Arrays.asList(
+	        hauteurSertissageEch1C1, hauteurSertissageEch2C1, hauteurSertissageEch3C1,
+	        hauteurSertissageEch1C2, hauteurSertissageEch2C2, hauteurSertissageEch3C2
+	    );
+
+	    for (TextField field : hauteurFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	            try {
+	                double valeur = Double.parseDouble(field.getText());
+	                if (valeur < MIN_HAUTEUR || valeur > MAX_HAUTEUR) {
+	                    colorBorderRed(field);
+	                    showErrorDialog(
+	                        "La valeur " + valeur + " dans le champ de hauteur de sertissage est hors limites.\nElle doit être entre " + MIN_HAUTEUR + " et " + MAX_HAUTEUR + ".", ""
+	                    );
+	                    erreur = true;
+	                }
+	            } catch (NumberFormatException e) {
+	                colorBorderRed(field);
+	                showErrorDialog(
+	                    "Veuillez entrer une valeur numérique valide pour le champ : " + field.getId() + ".", ""
+	                );
+	                erreur = true;
+	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+
+	    private boolean verifierValeursSertissagesFinale() {
+		    boolean erreur = false;
+
+		    List<TextField> hauteurFields = Arrays.asList(
+		        hauteurSertissageEchFinC1,
+		        hauteurSertissageEchFinC2
+		    );
+
+		    for (TextField field : hauteurFields) {
+		        if (!field.isDisabled() && !field.getText().isEmpty()) {
+		            try {
+		                double valeur = Double.parseDouble(field.getText());
+		                if (valeur < MIN_HAUTEUR || valeur > MAX_HAUTEUR) {
+		                    colorBorderRed(field);
+		                    showErrorDialog(
+		                        "La valeur " + valeur + " dans le champ de hauteur de sertissage est hors limites.\nElle doit être entre " + MIN_HAUTEUR + " et " + MAX_HAUTEUR + ".", ""
+		                    );
+		                    erreur = true;
+		                }
+		            } catch (NumberFormatException e) {
+		                colorBorderRed(field);
+		                showErrorDialog(
+		                    "Veuillez entrer une valeur numérique valide pour le champ : " + field.getId() + ".", ""
+		                );
+		                erreur = true;
+		            }
+		        }
+		    }
+	    return erreur;
+	}
+
 	@FXML
 	void precedant(ActionEvent event) {
 		try {

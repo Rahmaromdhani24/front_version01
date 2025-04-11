@@ -12,12 +12,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import Front_java.Configuration.AppInformations;
+import Front_java.Configuration.EmailRequest;
+import Front_java.Configuration.EmailValidationPdek;
+import Front_java.Configuration.SertissageIDCInformations;
 import Front_java.Configuration.SoudureInformations;
 import Front_java.Configuration.SoudureInformationsCodeB;
 import Front_java.Configuration.SoudureResult;
 import Front_java.Loading.LoadingController;
 import Front_java.Modeles.OperateurInfo;
 import Front_java.Modeles.SoudureDTO;
+import Front_java.Modeles.UserDTO;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -36,6 +40,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -802,6 +808,7 @@ public class Dashboard2Controller {
 	                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
 	                if (response.statusCode() == 200) {
+	                	sendMailValidationPDEK() ; 
 	                    // Traiter la réponse JSON pour obtenir l'ID du PDEK et le numéro de la page
 	                    String responseBody = response.body();
 	                    ObjectMapper mapper = new ObjectMapper();
@@ -1022,5 +1029,114 @@ public class Dashboard2Controller {
             return "Erreur de connexion à l'API";
         }
     }
+
+
+ 	/***************************** Envoie mail de validation de pdek *****************************/
+ 	public void sendMailValidationPDEK() {
+ 	    Task<Void> task = new Task<Void>() {
+ 	        @Override
+ 	        protected Void call() throws Exception {
+ 	            try {
+ 	                EmailValidationPdek request = new EmailValidationPdek();
+ 	                List<UserDTO> listeAgentsQualite = fetchAgentsQualiteByPlant();
+ 	                System.out.println("Agents qualité récupérés : " + listeAgentsQualite);
+
+ 	                for (UserDTO agent : listeAgentsQualite) {
+ 	                    request.setToEmail(agent.getEmail());
+ 	                    request.setNomResponsable(agent.getPrenom() + " " + agent.getNom());
+ 	                    request.setLocalisation("Plant :" + AppInformations.operateurInfo.getPlant() + " , Segment : " + AppInformations.operateurInfo.getSegment());
+ 	                    request.setNomProcess(AppInformations.operateurInfo.getOperation());
+ 	                    request.setSectionFil(SoudureInformations.sectionFilSelectionner);
+ 	                    request.setPosteMachine(AppInformations.operateurInfo.getPoste() + " /" + AppInformations.operateurInfo.getMachine());
+ 	                    request.setDateRemplissage(LocalDate.now()+"");
+ 	                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+ 	                    String formattedTime = LocalTime.now().format(formatter);
+ 	                  request.setHeureRemplissage(formattedTime);		 	                }
+
+ 	                HttpClient client = HttpClient.newHttpClient();
+ 	                ObjectMapper objectMapper = new ObjectMapper();
+ 	                String requestBody = objectMapper.writeValueAsString(request);
+
+ 	                HttpRequest httpRequest = HttpRequest.newBuilder()
+ 	                        .uri(URI.create("http://localhost:8281/admin/validerPdekAgentQualite"))
+ 	                        .header("Content-Type", "application/json")
+ 	                        .header("Authorization", "Bearer " + AppInformations.token) // Ajout du token ici
+ 	                        .POST(HttpRequest.BodyPublishers.ofString(requestBody, StandardCharsets.UTF_8))
+ 	                        .build();
+
+ 	                HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+ 	                // Vérification de la réponse HTTP
+ 	                if (response.statusCode() == 202) {
+ 	                    System.out.println("✅ Email d'alerte envoyée avec succès.");
+ 	                } else if (response.statusCode() == 403) {
+ 	                    // Analyser et afficher la réponse détaillée en cas de 403
+ 	                    System.out.println("❌ Échec de l'envoi de l'alerte (accès refusé).");
+ 	                    System.out.println("Détails de l'erreur 403: " + response.body()); // Affiche le contenu du corps de la réponse
+ 	                } else {
+ 	                    System.out.println("⚠️ Erreur lors de l'envoi : code = " + response.statusCode());
+ 	                    System.out.println("Réponse serveur : " + response.body());
+ 	                }
+
+ 	            } catch (Exception e) {
+ 	                System.out.println("Erreur technique interne.");
+ 	                e.printStackTrace(); // Pour logs dev
+ 	            }
+ 	            return null;
+ 	        }
+ 	    };
+
+ 	    new Thread(task).start();
+ 	}
+ 	/*************************************************************************/
+ 	public String joinValeursAvecPointVirgule(List<Double> valeurs) {
+ 	    StringBuilder sb = new StringBuilder();
+
+ 	    for (Double valeur : valeurs) {
+ 	        sb.append(valeur).append("; ");
+ 	    }
+
+ 	    // Supprimer le dernier "; " s'il existe
+ 	    if (sb.length() > 0) {
+ 	        sb.setLength(sb.length() - 2);
+ 	    }
+
+ 	    return sb.toString();
+ 	}
+
+ 	/************************************* Recuperer agents des qualite par plant **************************/
+ 	public List<UserDTO> fetchAgentsQualiteByPlant() {
+ 	    List<UserDTO> operateurs = new ArrayList<>();
+
+ 	    try {
+ 	        // 🔐 Récupérer le token depuis AppInformations
+ 	        String token = AppInformations.token;
+
+ 	        HttpClient client = HttpClient.newHttpClient();
+ 	        HttpRequest request = HttpRequest.newBuilder()
+ 	                .uri(URI.create("http://localhost:8281/operateur/AgentQualiteParPlant?nomPlant=" + AppInformations.operateurInfo.getPlant()))
+ 	                .header("Authorization", "Bearer " + token) // Ajout du token dans le header
+ 	                .build();
+
+ 	        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+ 	        if (response.statusCode() == 200) {
+ 	            ObjectMapper objectMapper = new ObjectMapper();
+ 	            operateurs = objectMapper.readValue(
+ 	                    response.body(),
+ 	                    objectMapper.getTypeFactory().constructCollectionType(List.class, UserDTO.class)
+ 	            );
+ 	            System.out.println("Liste des agents : " + operateurs);
+ 	        } else {
+ 	            System.err.println("Erreur HTTP: " + response.statusCode());
+ 	        }
+
+ 	    } catch (Exception e) {
+ 	        e.printStackTrace();
+ 	    }
+
+ 	    return operateurs;
+ 	}
+
 
 }

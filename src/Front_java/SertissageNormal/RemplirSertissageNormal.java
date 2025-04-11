@@ -381,71 +381,33 @@ public class RemplirSertissageNormal {
 	 
      	    	//// ligne 1 : haauteur Sertissage 
      	    	 double valHauteurSertissage = SertissageNormaleInformations.labelHauteurSertissage ; 
+     	    	 double maxHauteur = valHauteurSertissage +0.05 ; 
      	    	 if (areFieldsEqual(hauteurSertissageEch1 , hauteurSertissageEch2 , hauteurSertissageEch3 , hauteurSertissageEchFin)) {
      	            colorBorderRed(hauteurSertissageEch1, hauteurSertissageEch2, hauteurSertissageEch3, hauteurSertissageEchFin);
-     	            showErrorDialog("Les valeurs des échantillons de hauteur de sertissage  doivent être différentes et ne dépasse pas ."+valHauteurSertissage+0.05, "");
+     	            showErrorDialog("Les valeurs des échantillons de hauteur de sertissage  doivent être différentes et ne dépasse pas "+ maxHauteur, "");
      	            hasError = true;
      	        }
-     	        // Vérification des valeurs hors limites
-     	        List<TextField> hauteurSertissageFields = Arrays.asList(
-     	        		hauteurSertissageEch1, hauteurSertissageEch2, hauteurSertissageEch3, hauteurSertissageEchFin    	        		
-     	        );
-     	       
-     	      
-     	        for (TextField field : hauteurSertissageFields) {
-     	            try {
-     	                double valeur = Double.parseDouble(field.getText());
-     	                if (valeur < (valHauteurSertissage - 0.05) || valeur > ( valHauteurSertissage+ 0.05)) {
-     	                    colorBorderRed(field);
-     	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de sertissage est hors limites. Elle doit être entre " +(valHauteurSertissage - 0.05)  + " et " + (valHauteurSertissage + 0.05)  + ".", "");
-     	                    hasError = true;
-     	                }
-     	            } catch (NumberFormatException e) {
-     	                colorBorderRed(field);
-     	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
-     	                hasError = true;
-     	            }
-     	        }
+     	    	 
+     	     
      	  //// ligne 2 : largeur Sertissage 
-     	    double valLargeurSertissage = SertissageNormaleInformations.labelLargeurSertissage ; 
-     	   ToleranceParser.Tolerance tol = ToleranceParser.parseTolerance(
-     			    fetchToleranceLargeurSertissageFromAPI(
-     			        SertissageNormaleInformations.numeroOutils,
-     			        SertissageNormaleInformations.numeroContacts,
-     			        SertissageNormaleInformations.sectionFil
-     			    )
-     			);
-     	   
-     	 double min = valLargeurSertissage - tol.lower;
-     	 double max = valLargeurSertissage + tol.upper;   	 
-     	 System.out.println("le min est ="+min) ;
-     	 System.out.println("le max est ="+max) ;
+     	        double valLargeurSertissage = SertissageNormaleInformations.labelLargeurSertissage ; 
+     	  	   ToleranceParser.Tolerance tol = ToleranceParser.parseTolerance(
+     	  			    fetchToleranceLargeurSertissageFromAPI(
+     	  			        SertissageNormaleInformations.numeroOutils,
+     	  			        SertissageNormaleInformations.numeroContacts,
+     	  			        SertissageNormaleInformations.sectionFil
+     	  			    )
+     	  			);
+     	  	   
+     	  	   double min = valLargeurSertissage - tol.lower;
+     	  	   double max = valLargeurSertissage + tol.upper;   	 
 
     	    	 if (areFieldsEqualDeuxChamps(largeurSertissage , largeurSertissageEchFin )) {
     	            colorBorderRed(largeurSertissage, largeurSertissageEchFin);
-    	            showErrorDialog("Les valeurs des échantillons de largeur de sertissage  doivent être différentes et ne dépasse pas ."+max, "");
+    	            showErrorDialog("Les valeurs des échantillons de largeur de sertissage  doivent être différentes et ne dépasse pas "+max, "");
     	            hasError = true;
     	        }
-    	        // Vérification des valeurs hors limites
-    	        List<TextField> largeurSertissageFields = Arrays.asList(
-    	        		largeurSertissage, largeurSertissageEchFin    	        		
-    	        );
-    	       
-    	     
-    	        for (TextField field : largeurSertissageFields) {
-    	            try {
-    	                double valeur = Double.parseDouble(field.getText());
-    	                if ((valeur <  min) || (valeur >   max)) {
-    	                    colorBorderRed(field);
-    	                    showErrorDialog("La valeur " + valeur + " dans  champs de largeur  de sertissage est hors limites. Elle doit être entre " +( min)  + " et " + (max)  + ".", "");
-    	                    hasError = true;
-    	                }
-    	            } catch (NumberFormatException e) {
-    	                colorBorderRed(field);
-    	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
-    	                hasError = true;
-    	            }
-    	        }
+    	      
     	        //// ligne 3 : hauteur isolant   
       	       double valHauteurIsolant = SertissageNormaleInformations.labelHauteurIsolant ; 
     	        String toleranceStrHauteurIsolant = fetchToleranceHauteurIsolantFromAPI(
@@ -457,29 +419,10 @@ public class RemplirSertissageNormal {
     	        		
      	    	 if (areFieldsEqualDeuxChamps(hauteurIsolant , hauteurIsolantEchFin )) {
      	            colorBorderRed(hauteurIsolant, hauteurIsolantEchFin);
-     	            showErrorDialog("Les valeurs des échantillons de hauteur de isolant   doivent être différentes et ne dépasse pas ."+valHauteurIsolant+toleranceHauteurIsolant, "");
+     	            showErrorDialog("Les valeurs des échantillons de hauteur de isolant   doivent être différentes et ne dépasse pas "+(valHauteurIsolant+toleranceHauteurIsolant ), "");
      	            hasError = true;
      	        }
-     	        // Vérification des valeurs hors limites
-     	        List<TextField> HauteurIsolantsFields = Arrays.asList(
-     	        		hauteurIsolant, hauteurIsolantEchFin    	        		
-     	        );
-     	       
-     	     
-     	        for (TextField field : HauteurIsolantsFields) {
-     	            try {
-     	                double valeur = Double.parseDouble(field.getText());
-     	                if (valeur < (valHauteurIsolant - toleranceHauteurIsolant) || valeur > ( valHauteurIsolant+ toleranceHauteurIsolant)) {
-     	                    colorBorderRed(field);
-     	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de isolant  est hors limites. Elle doit être entre " +(valHauteurIsolant - toleranceHauteurIsolant)  + " et " + (valHauteurIsolant+ toleranceHauteurIsolant)  + ".", "");
-     	                    hasError = true;
-     	                }
-     	            } catch (NumberFormatException e) {
-     	                colorBorderRed(field);
-     	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
-     	                hasError = true;
-     	            }
-     	        }
+     	      
      	       //// ligne 4  : largeur isolant 
       	       double valLargeurIsolant = SertissageNormaleInformations.labelLargeurIsolant ; 
     	       	
@@ -497,29 +440,10 @@ public class RemplirSertissageNormal {
     	             	 System.out.println("le maxTolIsol est ="+maxTolIsol) ;
      	    	 if (areFieldsEqualDeuxChamps(largeurIsolant , largeurIsolantEchFin )) {
      	            colorBorderRed(largeurIsolant, largeurIsolantEchFin);
-     	            showErrorDialog("Les valeurs des échantillons de largeur de isolant  doivent être différentes et ne dépasse pas ."+(maxTolIsol), "");
+     	            showErrorDialog("Les valeurs des échantillons de largeur de isolant  doivent être différentes et ne dépasse pas "+(maxTolIsol), "");
      	            hasError = true;
      	        }
-     	        // Vérification des valeurs hors limites
-     	        List<TextField> largeurIsolantFields = Arrays.asList(
-     	        		largeurIsolant , largeurIsolantEchFin      		
-     	        );
-     	       
      	     
-     	        for (TextField field : largeurIsolantFields) {
-     	            try {
-     	                double valeur = Double.parseDouble(field.getText());
-     	                if ((valeur < minTolIsol) ||( valeur >  maxTolIsol)) {
-     	                    colorBorderRed(field);
-     	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de sertissage est hors limites. Elle doit être entre " +(minTolIsol)  + " et " + (maxTolIsol)  + ".", "");
-     	                    hasError = true;
-     	                }
-     	            } catch (NumberFormatException e) {
-     	                colorBorderRed(field);
-     	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
-     	                hasError = true;
-     	            }
-     	        }
      	        //// ligne 5 : traction
        	       String valtractionString = SertissageNormaleInformations.labelTraction ; 
                int tractionValue = extractValue(valtractionString) ; 
@@ -527,29 +451,26 @@ public class RemplirSertissageNormal {
      	        		
       	    	 if (areFieldsEqualDeuxChamps(traction , tractionEchFin )) {
       	            colorBorderRed(traction , tractionEchFin);
-      	            showErrorDialog("Les valeurs des échantillons de traction  doivent être différentes et ne dépasse pas ."+tractionValue+" N", "");
+      	            showErrorDialog("Les valeurs des échantillons de traction  doivent être différentes et ne dépasse pas "+tractionValue+" N", "");
       	            hasError = true;
       	        }
-      	        // Vérification des valeurs hors limites
-      	        List<TextField> tractionFields = Arrays.asList(
-      	        		traction , tractionEchFin	
-      	        );
-      	       
-      	     
-      	        for (TextField field : tractionFields) {
-      	            try {
-      	                int valeur = Integer.parseInt(field.getText());
-      	                if ( valeur < ( tractionValue)) {
-      	                    colorBorderRed(field);
-      	                    showErrorDialog("La valeur " + valeur + " dans  champs traction  est hors limites. Elle doit être superieur ou égale a  " +tractionValue+" N"  + ".", "");
-      	                    hasError = true;
-      	                }
-      	            } catch (NumberFormatException e) {
-      	                colorBorderRed(field);
-      	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
-      	                hasError = true;
-      	            }
-      	        }
+      	  
+      	    if (verifierHauteurSertissagesFinales()) {
+          	    return; // stop si erreur détectée
+          	}
+      	    if (verifierLargeurSertissagesFinales()) {
+          	    return; // stop si erreur détectée
+          	}
+      	    if (verifierHauteurIsolantFinales()) {
+        	    return; // stop si erreur détectée
+        	}
+    	    if (verifierLargeurIsolantFinales()) {
+        	    return; // stop si erreur détectée
+        	}
+    	    if (verifierTractionFinale()) {
+        	    return; // stop si erreur détectée
+        	}
+      	      
      	        if (hasError) {
      	            return;
      	        }
@@ -600,6 +521,21 @@ public class RemplirSertissageNormal {
                 }
             });
         } else {     
+        	if (verifierHauteurSertissages()) {
+        	    return; // stop si erreur détectée
+        	}
+        	if (verifierLargeurSertissages()) {
+        	    return; // stop si erreur détectée
+        	}
+        	if (verifierHauteurIsolant()) {
+        	    return; // stop si erreur détectée
+        	}
+        	if (verifierLargeurIsolant()) {
+        	    return; // stop si erreur détectée
+        	}
+        	if (verifierTraction()) {
+        	    return; // stop si erreur détectée
+        	}
         			  centerTextFields(
         					  hauteurSertissageEch1, hauteurSertissageEch2, hauteurSertissageEch3, 
         					  largeurSertissage, hauteurIsolant, largeurIsolant, 
@@ -705,6 +641,355 @@ public class RemplirSertissageNormal {
         	            }
         	        }
 }
+	
+	private boolean verifierHauteurSertissages() {
+	    boolean erreur = false;
+    	 double valHauteurSertissage = SertissageNormaleInformations.labelHauteurSertissage ; 
+
+	    List<TextField> hauteurSertissageFields = Arrays.asList(
+	        		hauteurSertissageEch1, hauteurSertissageEch2, hauteurSertissageEch3    	        		
+	        );
+	       
+
+	    for (TextField field : hauteurSertissageFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	        	 try {
+  	                double valeur = Double.parseDouble(field.getText());
+  	                if (valeur < (valHauteurSertissage - 0.05) || valeur > ( valHauteurSertissage+ 0.05)) {
+  	                    colorBorderRed(field);
+  	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de sertissage est hors limites. Elle doit être entre " +(valHauteurSertissage - 0.05)  + " et " + (valHauteurSertissage + 0.05)  + ".", "");
+  	                  erreur = true;
+  	                }
+  	            } catch (NumberFormatException e) {
+  	                colorBorderRed(field);
+  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+  	              erreur = true;
+  	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+
+	private boolean verifierLargeurSertissages() {
+	    boolean erreur = false;
+	    double valLargeurSertissage = SertissageNormaleInformations.labelLargeurSertissage ; 
+  	   ToleranceParser.Tolerance tol = ToleranceParser.parseTolerance(
+  			    fetchToleranceLargeurSertissageFromAPI(
+  			        SertissageNormaleInformations.numeroOutils,
+  			        SertissageNormaleInformations.numeroContacts,
+  			        SertissageNormaleInformations.sectionFil
+  			    )
+  			);
+  	   
+  	   double min = valLargeurSertissage - tol.lower;
+  	   double max = valLargeurSertissage + tol.upper;   	 
+  	   System.out.println("le min est ="+min) ;
+  	    System.out.println("le max est ="+max) ;
+	    List<TextField> hauteurSertissageFields = Arrays.asList(
+	    		largeurSertissage
+	        );
+	       
+
+	    for (TextField field : hauteurSertissageFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	            try {
+	                double valeur = Double.parseDouble(field.getText());
+	                if ((valeur <  min) || (valeur >   max)) {
+	                    colorBorderRed(field);
+	                    showErrorDialog("La valeur " + valeur + " dans  champs de largeur  de sertissage est hors limites. Elle doit être entre " +( min)  + " et " + (max)  + ".", "");
+	                    erreur = true;
+	                }
+	            }  catch (NumberFormatException e) {
+  	                colorBorderRed(field);
+  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+  	              erreur = true;
+  	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+	private boolean verifierLargeurSertissagesFinales() {
+	    boolean erreur = false;
+	    double valLargeurSertissage = SertissageNormaleInformations.labelLargeurSertissage ; 
+  	   ToleranceParser.Tolerance tol = ToleranceParser.parseTolerance(
+  			    fetchToleranceLargeurSertissageFromAPI(
+  			        SertissageNormaleInformations.numeroOutils,
+  			        SertissageNormaleInformations.numeroContacts,
+  			        SertissageNormaleInformations.sectionFil
+  			    )
+  			);
+  	   
+  	   double min = valLargeurSertissage - tol.lower;
+  	   double max = valLargeurSertissage + tol.upper;   	 
+  	   System.out.println("le min est ="+min) ;
+  	    System.out.println("le max est ="+max) ;
+	    List<TextField> hauteurSertissageFields = Arrays.asList(
+	    		largeurSertissageEchFin
+	        );
+	       
+
+	    for (TextField field : hauteurSertissageFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	            try {
+	                double valeur = Double.parseDouble(field.getText());
+	                if ((valeur <  min) || (valeur >   max)) {
+	                    colorBorderRed(field);
+	                    showErrorDialog("La valeur " + valeur + " dans  champs de largeur  de sertissage est hors limites. Elle doit être entre " +( min)  + " et " + (max)  + ".", "");
+	                    erreur = true;
+	                }
+	            }  catch (NumberFormatException e) {
+  	                colorBorderRed(field);
+  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+  	              erreur = true;
+  	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+	
+	private boolean verifierHauteurSertissagesFinales() {
+	    boolean erreur = false;
+    	 double valHauteurSertissage = SertissageNormaleInformations.labelHauteurSertissage ; 
+
+	    List<TextField> hauteurSertissageFields = Arrays.asList(
+	        		hauteurSertissageEchFin    	        		
+	        );
+	       
+
+	    for (TextField field : hauteurSertissageFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	        	 try {
+  	                double valeur = Double.parseDouble(field.getText());
+  	                if (valeur < (valHauteurSertissage - 0.05) || valeur > ( valHauteurSertissage+ 0.05)) {
+  	                    colorBorderRed(field);
+  	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de sertissage est hors limites. Elle doit être entre " +(valHauteurSertissage - 0.05)  + " et " + (valHauteurSertissage + 0.05)  + ".", "");
+  	                  erreur = true;
+  	                }
+  	            } catch (NumberFormatException e) {
+  	                colorBorderRed(field);
+  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+  	              erreur = true;
+  	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+	private boolean verifierHauteurIsolant() {
+	    boolean erreur = false;
+	    double valHauteurIsolant = SertissageNormaleInformations.labelHauteurIsolant ; 
+        String toleranceStrHauteurIsolant = fetchToleranceHauteurIsolantFromAPI(
+        		SertissageNormaleInformations.numeroOutils,
+        		SertissageNormaleInformations.numeroContacts,
+        		SertissageNormaleInformations.sectionFil
+        		).replace("±", "").trim(); // Suppression du symbole ±
+        		double toleranceHauteurIsolant = Double.parseDouble(toleranceStrHauteurIsolant);
+        		
+	    List<TextField> hauteurSertissageFields = Arrays.asList(
+	        		hauteurIsolant	        		
+	        );
+	       
+
+	    for (TextField field : hauteurSertissageFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	        	   try {
+    	                double valeur = Double.parseDouble(field.getText());
+    	                if (valeur < (valHauteurIsolant - toleranceHauteurIsolant) || valeur > ( valHauteurIsolant+ toleranceHauteurIsolant)) {
+    	                    colorBorderRed(field);
+    	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de isolant  est hors limites. Elle doit être entre " +(valHauteurIsolant - toleranceHauteurIsolant)  + " et " + (valHauteurIsolant+ toleranceHauteurIsolant)  + ".", "");
+    	                    erreur = true;
+    	                }
+    	            } catch (NumberFormatException e) {
+  	                colorBorderRed(field);
+  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+  	              erreur = true;
+  	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+
+	private boolean verifierLargeurIsolant() {
+	    boolean erreur = false;
+	    double valLargeurIsolant = SertissageNormaleInformations.labelLargeurIsolant ; 
+       	
+		   ToleranceParser.Tolerance tolIsolant = ToleranceParser.parseTolerance(
+				   fetchToleranceLargeurIsolantFromAPI(
+ 			        SertissageNormaleInformations.numeroOutils,
+ 			        SertissageNormaleInformations.numeroContacts,
+ 			        SertissageNormaleInformations.sectionFil
+ 			    )
+ 			);
+ 	   
+ 	 double minTolIsol = valLargeurIsolant - tolIsolant.lower;
+ 	 double maxTolIsol = valLargeurIsolant + tolIsolant.upper;   
+ 	 System.out.println("le minTolIsol est ="+minTolIsol) ;
+  	 System.out.println("le maxTolIsol est ="+maxTolIsol) ;
+ 	 
+	    List<TextField> hauteurSertissageFields = Arrays.asList(
+	    		largeurIsolant
+	        );
+	       
+
+	    for (TextField field : hauteurSertissageFields) {
+	        if (!field.isDisabled() && !field.getText().isEmpty()) {
+	            try {
+ 	                double valeur = Double.parseDouble(field.getText());
+ 	                if ((valeur < minTolIsol) ||( valeur >  maxTolIsol)) {
+ 	                    colorBorderRed(field);
+ 	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de sertissage est hors limites. Elle doit être entre " +(minTolIsol)  + " et " + (maxTolIsol)  + ".", "");
+ 	                   erreur = true;
+ 	                }
+ 	            }  catch (NumberFormatException e) {
+  	                colorBorderRed(field);
+  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+  	              erreur = true;
+  	            }
+	        }
+	    }
+
+	    return erreur;
+	}
+	private boolean verifierLargeurIsolantFinales() {
+		  boolean erreur = false;
+		    double valLargeurIsolant = SertissageNormaleInformations.labelLargeurIsolant ; 
+	       	
+			   ToleranceParser.Tolerance tolIsolant = ToleranceParser.parseTolerance(
+					   fetchToleranceLargeurIsolantFromAPI(
+	 			        SertissageNormaleInformations.numeroOutils,
+	 			        SertissageNormaleInformations.numeroContacts,
+	 			        SertissageNormaleInformations.sectionFil
+	 			    )
+	 			);
+	 	   
+	 	 double minTolIsol = valLargeurIsolant - tolIsolant.lower;
+	 	 double maxTolIsol = valLargeurIsolant + tolIsolant.upper;   
+	 	 System.out.println("le minTolIsol est ="+minTolIsol) ;
+	  	 System.out.println("le maxTolIsol est ="+maxTolIsol) ;
+	 	 
+		    List<TextField> hauteurSertissageFields = Arrays.asList(
+		    		largeurIsolantEchFin
+		        );
+		       
+
+		    for (TextField field : hauteurSertissageFields) {
+		        if (!field.isDisabled() && !field.getText().isEmpty()) {
+		            try {
+	 	                double valeur = Double.parseDouble(field.getText());
+	 	                if ((valeur < minTolIsol) ||( valeur >  maxTolIsol)) {
+	 	                    colorBorderRed(field);
+	 	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de sertissage est hors limites. Elle doit être entre " +(minTolIsol)  + " et " + (maxTolIsol)  + ".", "");
+	 	                   erreur = true;
+	 	                }
+	 	            }  catch (NumberFormatException e) {
+	  	                colorBorderRed(field);
+	  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+	  	              erreur = true;
+	  	            }
+		        }
+		    }
+
+		    return erreur;
+	}
+	
+	private boolean verifierHauteurIsolantFinales() {
+		 boolean erreur = false;
+		    double valHauteurIsolant = SertissageNormaleInformations.labelHauteurIsolant ; 
+	        String toleranceStrHauteurIsolant = fetchToleranceHauteurIsolantFromAPI(
+	        		SertissageNormaleInformations.numeroOutils,
+	        		SertissageNormaleInformations.numeroContacts,
+	        		SertissageNormaleInformations.sectionFil
+	        		).replace("±", "").trim(); // Suppression du symbole ±
+	        		double toleranceHauteurIsolant = Double.parseDouble(toleranceStrHauteurIsolant);
+	        		
+		    List<TextField> hauteurSertissageFields = Arrays.asList(
+		        		hauteurIsolantEchFin	        		
+		        );
+		       
+
+		    for (TextField field : hauteurSertissageFields) {
+		        if (!field.isDisabled() && !field.getText().isEmpty()) {
+		        	   try {
+	    	                double valeur = Double.parseDouble(field.getText());
+	    	                if (valeur < (valHauteurIsolant - toleranceHauteurIsolant) || valeur > ( valHauteurIsolant+ toleranceHauteurIsolant)) {
+	    	                    colorBorderRed(field);
+	    	                    showErrorDialog("La valeur " + valeur + " dans  champs de hauteur de isolant  est hors limites. Elle doit être entre " +(valHauteurIsolant - toleranceHauteurIsolant)  + " et " + (valHauteurIsolant+ toleranceHauteurIsolant)  + ".", "");
+	    	                    erreur = true;
+	    	                }
+	    	            } catch (NumberFormatException e) {
+	  	                colorBorderRed(field);
+	  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+	  	              erreur = true;
+	  	            }
+		        }
+		    }
+
+		    return erreur;
+	}
+	private boolean verifierTraction() {
+		  boolean erreur = false;
+		  String valtractionString = SertissageNormaleInformations.labelTraction ; 
+          int tractionValue = extractValue(valtractionString) ; 
+          System.out.print(" valeur de traction numerique "+tractionValue);
+	       	
+		    List<TextField> hauteurSertissageFields = Arrays.asList(
+		    		traction
+		        );
+		       
+
+		    for (TextField field : hauteurSertissageFields) {
+		        if (!field.isDisabled() && !field.getText().isEmpty()) {
+		            try {
+      	                int valeur = Integer.parseInt(field.getText());
+      	                if ( valeur < ( tractionValue)) {
+      	                    colorBorderRed(field);
+      	                    showErrorDialog("La valeur " + valeur + " dans  champs traction  est hors limites. Elle doit être superieur ou égale a  " +tractionValue+" N"  + ".", "");
+      	                    erreur = true;
+      	                }
+      	            }  catch (NumberFormatException e) {
+	  	                colorBorderRed(field);
+	  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+	  	              erreur = true;
+	  	            }
+		        }
+		    }
+
+		    return erreur;
+	}
+	private boolean verifierTractionFinale() {
+		  boolean erreur = false;
+		  String valtractionString = SertissageNormaleInformations.labelTraction ; 
+          int tractionValue = extractValue(valtractionString) ; 
+          System.out.print(" valeur de traction numerique "+tractionValue);
+	       	
+		    List<TextField> hauteurSertissageFields = Arrays.asList(
+		    		traction
+		        );
+		       
+
+		    for (TextField field : hauteurSertissageFields) {
+		        if (!field.isDisabled() && !field.getText().isEmpty()) {
+		            try {
+      	                int valeur = Integer.parseInt(field.getText());
+      	                if ( valeur < ( tractionValue)) {
+      	                    colorBorderRed(field);
+      	                    showErrorDialog("La valeur " + valeur + " dans  champs traction  est hors limites. Elle doit être superieur ou égale a  " +tractionValue+" N"  + ".", "");
+      	                    erreur = true;
+      	                }
+      	            }  catch (NumberFormatException e) {
+	  	                colorBorderRed(field);
+	  	                showErrorDialog("Veuillez entrer une valeur numérique valide " , "");
+	  	              erreur = true;
+	  	            }
+		        }
+		    }
+
+		    return erreur;
+	}
 	
 	  public static boolean areFieldsEqual(TextField f1, TextField f2, TextField f3, TextField f4) {
 	        return f1.getText().equals(f2.getText()) &&

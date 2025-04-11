@@ -37,7 +37,7 @@ public class ChartMoyenneSoudure extends Application {
         root.setPadding(new Insets(20));
 
         // Charge les données et affiche le chart une fois terminé
-        chargerSouduresParPdekEtPage(root);
+      //  chargerSouduresParPdekEtPage(root);
 
         Scene scene = new Scene(root, 500, 400);
         primaryStage.setScene(scene);
@@ -46,7 +46,7 @@ public class ChartMoyenneSoudure extends Application {
     }
 
 
-    public static StackPane createMoyenneChartWithZones(List<SoudureReponse> soudures) {
+    public static StackPane createMoyenneChartWithZones(String numCycle , int moyenne) {
         int min = SoudureInformations.minPelage - 4;
         int maxVert = SoudureInformations.MoyenneVertMax;
         int rouge = SoudureInformations.minPelage;
@@ -58,14 +58,14 @@ public class ChartMoyenneSoudure extends Application {
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);
         chart.setAnimated(false);
-        chart.setPrefSize(460, 300);
+        chart.setPrefSize(460, 280);
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
 
         // Remplir les données depuis la liste
-        for (SoudureReponse s : soudures) {
-            series.getData().add(new XYChart.Data<>(String.valueOf(s.getNumeroCycle()), s.getMoyenne()));
-        }
+       // for (SoudureReponse s : soudures) {
+        series.getData().add(new XYChart.Data<>(numCycle, moyenne));
+       // }
 
         chart.getData().add(series);
 
@@ -133,7 +133,7 @@ public class ChartMoyenneSoudure extends Application {
     }
     /*********************************************************************************************************************/
 
-    public static void chargerSouduresParPdekEtPage(VBox root) {
+    /*public static void chargerSouduresParPdekEtPage(VBox root) {
         Task<List<SoudureReponse>> task = new Task<>() {
             @Override
             protected List<SoudureReponse> call() throws Exception {
@@ -172,5 +172,5 @@ public class ChartMoyenneSoudure extends Application {
 
         new Thread(task).start();
     }
-
+*/
 }
