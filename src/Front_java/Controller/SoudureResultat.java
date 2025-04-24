@@ -513,6 +513,9 @@ private void showErrorDialog(String title, String message) {
 	    	            + AppInformations.operateurInfo.getPrenom() + " " 
 	    	            + AppInformations.operateurInfo.getNom() 
 	    	            + " doit informer son supérieur hiérarchique immédiatement.", "Attention - Limite dépassée");
+	    	        
+	    	        //modifier etat de attribut rempliePlanAction de 0 a 1 ;
+		  	          changerRempliePlanAction(SoudureInformations.idSoudure) ; 
 	    	    });
 	    	    List<Integer> valeursNonConformes = new ArrayList<>();
 				if ((moyenneEch < parsedValueMoyenne) && (minPelage < moyenneEch)) valeursNonConformes.add(moyenneEch);
@@ -528,6 +531,9 @@ private void showErrorDialog(String title, String message) {
 	                + AppInformations.operateurInfo.getPrenom() + " " 
 	                + AppInformations.operateurInfo.getNom() 
 	                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté");
+	            
+	            //modifier etat de attribut rempliePlanAction de 0 a 1 ;
+	  	          changerRempliePlanAction(SoudureInformations.idSoudure) ; 
 	    	    });
 	    	    List<Integer> valeursNonConformes = new ArrayList<>();
 				if (moyenneEch < minPelage) valeursNonConformes.add(moyenneEch);
@@ -592,6 +598,9 @@ private void showErrorDialog(String title, String message) {
 	  	                + AppInformations.operateurInfo.getPrenom() + " " 
 	  	                + AppInformations.operateurInfo.getNom() 
 	  	                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté");
+	  	            
+	  	          //modifier etat de attribut rempliePlanAction de 0 a 1 ;
+	  	          changerRempliePlanAction(SoudureInformations.idSoudure) ; 
 	  	    	    });	
 	    		  List<Integer> valeursNonConformes = new ArrayList<>();
 					if (etenduEch >=  parsedEtenduValue) valeursNonConformes.add(etenduEch);
@@ -916,5 +925,27 @@ private void showErrorDialog(String title, String message) {
 
  	    return sb.toString();
  	}
+/**************************** Mehtode de modifier attribut remplie plan action ********/
+ 	 public void changerRempliePlanAction(Long idSoudure) {
+         try {
+             HttpClient client = HttpClient.newHttpClient();
 
+             HttpRequest request = HttpRequest.newBuilder()
+                 .uri(URI.create("http://localhost:8281/operations/soudure/remplir-plan-action/" + idSoudure))
+                 .header("Authorization", "Bearer " + AppInformations.token)
+                 .PUT(HttpRequest.BodyPublishers.noBody())
+                 .build();
+
+             client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                 .thenAccept(response -> {
+                     if (response.statusCode() == 200) {
+                         System.out.println("Mise à jour réussie : " + response.body());
+                     } else {
+                         System.err.println("Échec de la mise à jour : " + response.body());
+                     }
+                 });
+         } catch (Exception e) {
+             e.printStackTrace();
+         }
+     }
 }	

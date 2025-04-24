@@ -63,6 +63,9 @@ public class SoudureDTO {
 	    @JsonProperty("date")
 	    private String date; // Format String ou LocalDate à ajuster
 
+	    @JsonProperty("heureCreation")
+	    private String heureCreation; 
+	    
 	    @JsonProperty("quantiteAtteint")
 	    private int quantiteAtteint;
 
@@ -95,6 +98,7 @@ public class SoudureDTO {
 	                "moyenne=" + moyenne + "\n" +
 	                "etendu=" + etendu + "\n" +
 	                "date=" + date + "\n" +
+	                "heureCreation=" + heureCreation + "\n" +
 	                "quantiteAtteint=" + quantiteAtteint + "\n" +
 	                "code=" + code + "\n" +
 	                "pdekId=" + pdekId + "\n" +

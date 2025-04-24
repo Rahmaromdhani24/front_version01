@@ -38,10 +38,13 @@ public class SoudureInformations {
 	public static int minPelage; 
 	public static int MoyenneVertMax ; 
 	
+	public static long idSoudure;
+
 
     // Méthode pour réinitialiser toutes les variables
     public static void reset() {
     	
+    	idSoudure=0 ; 
         projetSelectionner = null;
         sectionFilSelectionner = null;
         codeControleSelectionner = null;

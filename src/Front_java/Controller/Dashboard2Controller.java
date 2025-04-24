@@ -791,7 +791,9 @@ public class Dashboard2Controller {
 	                SoudureInformations.etendu = R;
 	                LocalDate dateActuelle = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate();
 	                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 	                soudure.setDate(dateActuelle.format(formatter));
+	                soudure.setHeureCreation(LocalTime.now().format(timeFormatter));
 	                SoudureInformations.dateCreation = dateActuelle.format(formatter);
 	                soudure.setQuantiteAtteint(Integer.parseInt(quantiteField.getText()));
 	                SoudureInformations.quantiteAtteint = Integer.parseInt(quantiteField.getText());
@@ -815,6 +817,10 @@ public class Dashboard2Controller {
 	                    JsonNode jsonResponse = mapper.readTree(responseBody);
 	                    String idPDEK = jsonResponse.get("pdekId").asText();
 	                    String numPage = jsonResponse.get("pageNumber").asText();
+	                    String idSoudure = jsonResponse.get("idSoudure").asText(); // ou jsonResponse.get("soudureId") selon ton backend
+	                    long idSoudureValue = Long.parseLong(idSoudure);
+	                    SoudureInformations.idSoudure = idSoudureValue;
+	                    System.out.println("ID Soudure récupéré : " + idSoudureValue);
 	                    long id = Long.parseLong(idPDEK); 
 	                    int num = Integer.parseInt(numPage);   
                         idPdekGlobale = id ; 
