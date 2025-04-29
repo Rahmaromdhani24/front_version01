@@ -29,6 +29,7 @@ public class TorsadageDTO {
     private int ech4;
     private int ech5;
     private String date;
+    private String heureCreation;
     private int quantiteTotale;
     private int quantiteAtteint;
     private String code;

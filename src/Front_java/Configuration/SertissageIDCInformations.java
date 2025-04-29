@@ -39,12 +39,14 @@ public class SertissageIDCInformations {
 
 
 	public static int testTerminitionCommande =  0 ;
+ 
+	public static long idSertissage ;
 
 	
     public static void reset() {
 	   sectionFil = null;
 	   date = null;
-	    
+	   idSertissage = 0 ; 
 	   hauteurSertissageC1Ech1 = 0.0;
 	   hauteurSertissageC1Ech2 = 0.0;
 	   hauteurSertissageC1Ech3 = 0.0;

@@ -379,7 +379,7 @@ public class RemplirSertissageNormal {
      	    	
 	    	
 	 
-     	    	//// ligne 1 : haauteur Sertissage 
+     	    	//// ligne 1 : hauteur Sertissage 
      	    	 double valHauteurSertissage = SertissageNormaleInformations.labelHauteurSertissage ; 
      	    	 double maxHauteur = valHauteurSertissage +0.05 ; 
      	    	 if (areFieldsEqual(hauteurSertissageEch1 , hauteurSertissageEch2 , hauteurSertissageEch3 , hauteurSertissageEchFin)) {

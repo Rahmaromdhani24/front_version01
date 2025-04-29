@@ -34,9 +34,10 @@ public class TorsadageInformations {
     public static String date; 
 	public static double moyenne ; 
 	public static int ettendu ;
-
+    public static long idTorsadage ; 
 	
 	public static void reset() {
+		idTorsadage = 0 ; 
 	    specificationsMesure = null;
 	    projetSelectionner = null;
 	    codeControleSelectionner = null;

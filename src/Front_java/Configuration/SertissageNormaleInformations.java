@@ -38,9 +38,12 @@ public class SertissageNormaleInformations {
 	public static String labelHauteurIsolantComplet;
 	public static String labelLargeurIsolantComplet;
 
-	
+	public static long idSertissage ;
+
 
 	public static void reset() {
+		
+		idSertissage = 0 ; 
 		labelLargeurSertissageComplet = null ; 
 		labelHauteurIsolantComplet= null ; 
 		labelLargeurIsolantComplet = null ; 

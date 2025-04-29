@@ -13,6 +13,7 @@ import Front_java.Configuration.AppInformations;
 import Front_java.Configuration.EmailRequest;
 import Front_java.Configuration.EmailValidationPdek;
 import Front_java.Configuration.SertissageIDCInformations;
+import Front_java.Configuration.SertissageNormaleInformations;
 import Front_java.Modeles.OperateurInfo;
 import Front_java.Modeles.SertissageIDCData;
 import Front_java.Modeles.UserDTO;
@@ -35,6 +36,8 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
@@ -448,8 +451,26 @@ public class Resultat {
 							HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
 							if (response.statusCode() == 201) {
-								System.out.println("Succès Ajout PDEK : " + response.body());
-								sendMailValidationPDEK() ; 
+								  String responseBody = response.body();
+								    ObjectMapper mapper = new ObjectMapper();
+								    JsonNode jsonResponse = mapper.readTree(responseBody);
+								    
+								    String idSertissage = jsonResponse.get("idSertissage").asText(); // ou jsonResponse.get("soudureId") selon ton backend
+				                    long idSertissageValue = Long.parseLong(idSertissage);
+				                    SertissageIDCInformations.idSertissage = idSertissageValue;
+				                    
+								    
+								    // On vérifie la présence des champs et on met des valeurs par défaut si manquants
+								    long id = jsonResponse.has("pdekId") && !jsonResponse.get("pdekId").isNull()
+								            ? jsonResponse.get("pdekId").asLong()
+								            : -1L; // valeur par défaut
+
+								    
+								    int num = jsonResponse.has("pageNumber") && !jsonResponse.get("pageNumber").isNull()
+								            ? jsonResponse.get("pageNumber").asInt()
+								            : -1; // valeur par défaut
+								  
+									sendMailValidationPDEK() ; 
 							} else {
 								System.out.println("Erreur dans l'ajout PDEK, code : " + response.statusCode() + ", message : "
 										+ response.body());
@@ -480,6 +501,8 @@ public class Resultat {
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage Côté 1");
+	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+
 		    	    });
 				List<Double> valeursNonConformes = new ArrayList<>();
 				if (ech1 <= 10.85) valeursNonConformes.add(ech1);
@@ -496,6 +519,9 @@ public class Resultat {
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage Côté 1");
+
+	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+
 		    	    });
 			    
 				List<Double> valeursNonConformes = new ArrayList<>();
@@ -514,7 +540,9 @@ public class Resultat {
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage Côté 1");
-		    	    });
+	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+ 
+			    });
 			    
 			    List<Double> valeursNonConformes = new ArrayList<>();
 				if (ech1 <= 10.88 && ech1 > 10.85) valeursNonConformes.add(ech1);
@@ -533,7 +561,9 @@ public class Resultat {
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage Côté 1");
-		    	    });
+	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+  
+			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
 				if (ech1 <= 11 && ech1 > 10.97) valeursNonConformes.add(ech1);
 				if (ech1 <= 11 && ech1 > 10.97) valeursNonConformes.add(ech2);
@@ -553,7 +583,9 @@ public class Resultat {
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage Côté 2");
-		    	    });
+	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+
+			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
 				if (ech1 >= 10.85 ) valeursNonConformes.add(ech1);
 				if (ech2 >= 10.85 ) valeursNonConformes.add(ech2);
@@ -570,7 +602,9 @@ public class Resultat {
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage Côté 2");
-		    	    });
+	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+  
+			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
 				if (ech1 >= 11 ) valeursNonConformes.add(ech1);
 				if (ech2 >= 11 ) valeursNonConformes.add(ech2);
@@ -587,7 +621,9 @@ public class Resultat {
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage Côté 2");
-		    	    });
+	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+  
+			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
 				if (ech1 <= 10.88 && ech1 > 10.85) valeursNonConformes.add(ech1);
 				if (ech2 <= 10.88 && ech2 > 10.85) valeursNonConformes.add(ech2);
@@ -604,7 +640,9 @@ public class Resultat {
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage Côté 2");
-		    	    });
+	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+ 
+			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
 				if (ech1 <= 11 && ech1 > 10.97) valeursNonConformes.add(ech1);
 				if (ech2 <= 11 && ech2 > 10.97) valeursNonConformes.add(ech2);
@@ -624,7 +662,9 @@ public class Resultat {
 			                + AppInformations.operateurInfo.getPrenom() + " " 
 			                + AppInformations.operateurInfo.getNom() 
 			                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans force de traction Côté 1");
-			    	    });
+		    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+
+				    });
 				    
 				    List<Double> valeursNonConformes = new ArrayList<>();
 					if (ech1 <= 50 ) valeursNonConformes.add(ech1);
@@ -644,7 +684,9 @@ public class Resultat {
 			                + AppInformations.operateurInfo.getPrenom() + " " 
 			                + AppInformations.operateurInfo.getNom() 
 			                + " doit informer son supérieur hiérachique.", "Problème détecté dans force de traction Côté 1");
-			    	    });
+		    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+
+				    });
 				    List<Double> valeursNonConformes = new ArrayList<>();
 					if (ech1 >= 50 && ech1 <= 60) valeursNonConformes.add(ech1);
 					if (ech2 >= 50 && ech2 <= 60) valeursNonConformes.add(ech2);
@@ -664,7 +706,9 @@ public class Resultat {
 			                + AppInformations.operateurInfo.getPrenom() + " " 
 			                + AppInformations.operateurInfo.getNom() 
 			                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans force de traction Côté 2");
-			    	    });
+		    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+
+				    });
 				    List<Double> valeursNonConformes = new ArrayList<>();
 					if (ech1 <= 50 ) valeursNonConformes.add(ech1);
 					if (ech2 <= 50 ) valeursNonConformes.add(ech2);
@@ -683,7 +727,8 @@ public class Resultat {
 			                + AppInformations.operateurInfo.getPrenom() + " " 
 			                + AppInformations.operateurInfo.getNom() 
 			                + " doit informer son supérieur hiérachique.", "Problème détecté dans force de traction Côté 2");
-			    	    });
+		    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
+				    });
 				    List<Double> valeursNonConformes = new ArrayList<>();
 					if (ech1 >= 50 && ech1 <= 60) valeursNonConformes.add(ech1);
 					if (ech2 >= 50 && ech2 <= 60) valeursNonConformes.add(ech2);
@@ -1153,4 +1198,27 @@ public class Resultat {
 		 	    return sb.toString();
 		 	}
 
-}
+		 	/**************************** Mehtode de modifier attribut remplie plan action ********/
+		 	 public void changerRempliePlanAction(Long idSoudure) {
+		         try {
+		             HttpClient client = HttpClient.newHttpClient();
+
+		             HttpRequest request = HttpRequest.newBuilder()
+		                 .uri(URI.create("http://localhost:8281/operations/soudure/remplir-plan-action/" + idSoudure))
+		                 .header("Authorization", "Bearer " + AppInformations.token)
+		                 .PUT(HttpRequest.BodyPublishers.noBody())
+		                 .build();
+
+		             client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+		                 .thenAccept(response -> {
+		                     if (response.statusCode() == 200) {
+		                         System.out.println("Mise à jour réussie : " + response.body());
+		                     } else {
+		                         System.err.println("Échec de la mise à jour : " + response.body());
+		                     }
+		                 });
+		         } catch (Exception e) {
+		             e.printStackTrace();
+		         }
+		     }
+		}	

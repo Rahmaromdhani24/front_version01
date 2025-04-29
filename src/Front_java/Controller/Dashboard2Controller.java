@@ -22,6 +22,7 @@ import Front_java.Loading.LoadingController;
 import Front_java.Modeles.OperateurInfo;
 import Front_java.Modeles.SoudureDTO;
 import Front_java.Modeles.UserDTO;
+import Front_java.Services.ServiceSoudure;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -43,6 +44,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jfoenix.controls.JFXButton;
@@ -56,6 +59,7 @@ import javafx.util.Duration;
 
 
 public class Dashboard2Controller {
+	 private ServiceSoudure serviceSoudure = new ServiceSoudure();
 
 	// Variables pour stocker la position de la souris
 	private double xOffset = 0;
@@ -810,8 +814,7 @@ public class Dashboard2Controller {
 	                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
 	                if (response.statusCode() == 200) {
-	                	sendMailValidationPDEK() ; 
-	                    // Traiter la réponse JSON pour obtenir l'ID du PDEK et le numéro de la page
+	                	
 	                    String responseBody = response.body();
 	                    ObjectMapper mapper = new ObjectMapper();
 	                    JsonNode jsonResponse = mapper.readTree(responseBody);
@@ -819,10 +822,21 @@ public class Dashboard2Controller {
 	                    String numPage = jsonResponse.get("pageNumber").asText();
 	                    String idSoudure = jsonResponse.get("idSoudure").asText(); // ou jsonResponse.get("soudureId") selon ton backend
 	                    long idSoudureValue = Long.parseLong(idSoudure);
+	                    testerEtendu(SoudureInformations.etendu , idSoudureValue) ; 	                    
+	                    testerMoyenne(SoudureInformations.moyenne , idSoudureValue) ; 	                    
 	                    SoudureInformations.idSoudure = idSoudureValue;
 	                    System.out.println("ID Soudure récupéré : " + idSoudureValue);
 	                    long id = Long.parseLong(idPDEK); 
 	                    int num = Integer.parseInt(numPage);   
+	                	if((testerEtenduAjout( SoudureInformations.etendu) == true)&& (testerMoyenneAjout( SoudureInformations.moyenne) == true) ) {
+	                		sendMailValidationPDEK() ; 
+	                	}	                	
+	                	if(testerEtenduAjout( SoudureInformations.etendu) == false) {
+	                		updateZoneEtRempliePlanAction(idSoudureValue ,"rouge") ; 
+	                	}
+	                	testerMoyenneZone(SoudureInformations.moyenne ,  idSoudureValue) ; 
+	                    // Traiter la réponse JSON pour obtenir l'ID du PDEK et le numéro de la page
+	                
                         idPdekGlobale = id ; 
                         numPageGlobale = num ; 
 	                   
@@ -1144,5 +1158,224 @@ public class Dashboard2Controller {
  	    return operateurs;
  	}
 
+/*************************** partie test moyenne et etendu ****************/
+ 	public void testerMoyenne(int moyenneEch , long idSoudure) {
+	    int minPelage = extractNumber(AppInformations.nbrPelage);
+	    int maxVert = SoudureInformations.MoyenneVertMax;
+        int minVert = serviceSoudure.fetchValeurMoyenneMin() ; 
+	    CompletableFuture<String> future = serviceSoudure.getValeurMoyenneMinFromApi();
 
+	    future.thenApply(result -> {
+	        System.out.println("Valeur reçue de moyenne vert min  : " + result); // Debugging
+	        try {
+	            return Integer.parseInt(result.trim());
+	        } catch (NumberFormatException e) {
+	            System.out.println("Erreur lors de la conversion de la valeur reçue de l'API : " + result);
+	            return 0; // Retourne 0 en cas d'erreur
+	        }
+	    }).thenAccept(parsedValueMoyenne -> {
+	    	SoudureInformations.MoyenneVertMin = parsedValueMoyenne ; 
+	    	SoudureInformations.minPelage = minPelage ; 
+	    	System.out.println("Vérification des valeurs :");
+	    	System.out.println("moyenneEch : " + moyenneEch);
+	    	System.out.println("minPelage : " + minPelage);
+	    	System.out.println("parsedValue : " + parsedValueMoyenne);
+
+	    	if ((moyenneEch < parsedValueMoyenne) && (minPelage < moyenneEch)) { // Zone jaune
+	    	    System.out.println("Zone jaune détectée");
+	    	    Platform.runLater(() -> {  	         changerRempliePlanAction(idSoudure) ; 	    });     
+ 
+	    	    List<Integer> valeursNonConformes = new ArrayList<>();
+				if ((moyenneEch < parsedValueMoyenne) && (minPelage < moyenneEch)) valeursNonConformes.add(moyenneEch);
+							
+	    	} 
+	        if (moyenneEch < minPelage) { // Zone rouge
+	            System.out.println("Zone rouge détectée");
+	    	    Platform.runLater(() -> { changerRempliePlanAction(idSoudure) ;    });  
+	    	    List<Integer> valeursNonConformes = new ArrayList<>();
+				if (moyenneEch < minPelage) valeursNonConformes.add(moyenneEch);
+				
+			
+	    	    } else {
+	            System.out.println("Aucune alerte déclenchée");
+	        }
+	    });
+	}
+public void testerEtendu(int etenduEch , long idSoudure) {
+	    
+		double max = SoudureInformations.EtenduValueMax  ; 
+	    CompletableFuture<String> future = serviceSoudure.getValeurEtenduFromApi();
+
+	    future.thenApply(result -> {
+	        System.out.println("Valeur reçue de valeur max de etendu  : " + result); // Debugging
+	        try {
+	            return Integer.parseInt(result.trim());
+	        } catch (NumberFormatException e) {
+	            System.out.println("Erreur lors de la conversion de la valeur reçue de l'API : " + result);
+	            return 0; // Retourne 0 en cas d'erreur
+	        }
+	    }).thenAccept(parsedEtenduValue -> {
+	    	System.out.println("Vérification des valeurs :");
+	    	System.out.println("etenduEch : " + etenduEch);
+	    	System.out.println("parsedEtenduValue : " + parsedEtenduValue);
+	    	SoudureInformations.EtenduValueMax = parsedEtenduValue ; 
+
+	    	if (etenduEch >=  parsedEtenduValue) {
+	    		  Platform.runLater(() -> {  	        changerRempliePlanAction(idSoudure) ;     });	  
+	  	         	    	   
+	    		  List<Integer> valeursNonConformes = new ArrayList<>();
+					if (etenduEch >=  parsedEtenduValue) valeursNonConformes.add(etenduEch);
+					
+				
+	               }
+	           }) ;
+	}
+
+public boolean testerEtenduAjout(int etenduEch) throws InterruptedException, ExecutionException { 
+        CompletableFuture<String> future = serviceSoudure.getValeurEtenduFromApi();
+        String result = future.get(); // .get() peut lancer InterruptedException ou ExecutionException
+
+        System.out.println("Valeur reçue de valeur max de etendu  : " + result);
+
+        int parsedEtenduValue;
+        try {
+            parsedEtenduValue = Integer.parseInt(result.trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Erreur lors de la conversion de la valeur reçue de l'API : " + result);
+            parsedEtenduValue = 0;
+        }
+
+        SoudureInformations.EtenduValueMax = parsedEtenduValue;
+
+        return etenduEch < parsedEtenduValue;    
 }
+
+public boolean testerMoyenneAjout(int moyenneEch) {
+    try {
+        int maxVert = SoudureInformations.MoyenneVertMax;
+        CompletableFuture<String> future = serviceSoudure.getValeurMoyenneMinFromApi();
+        String result = future.get(); // bloquant
+        System.out.println("Valeur reçue de moyenne vert min : " + result);
+        int minVert;
+        try {
+            minVert = Integer.parseInt(result.trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Erreur lors de la conversion de la valeur reçue de l'API : " + result);
+            minVert = 0; // valeur par défaut en cas d'erreur
+        }
+        boolean conforme = (moyenneEch < maxVert) && (minVert < moyenneEch);
+
+        if (!conforme) {
+            List<Integer> valeursNonConformes = new ArrayList<>();
+            valeursNonConformes.add(moyenneEch); 
+        }
+        return conforme;
+
+    } catch (InterruptedException | ExecutionException e) {
+        e.printStackTrace();
+        return false; // en cas d'erreur d'appel API
+    }
+}
+
+
+	public int extractNumber(String input) {
+	    String numericPart = input.substring(0, input.length() - 1);
+	    return Integer.parseInt(numericPart); 
+	}
+	/**************************** Mehtode de modifier attribut remplie plan action ********/
+	 public void changerRempliePlanAction(Long idSoudure) {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8281/operations/soudure/remplir-plan-action/" + idSoudure))
+                .header("Authorization", "Bearer " + AppInformations.token)
+                .PUT(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+            client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenAccept(response -> {
+                    if (response.statusCode() == 200) {
+                        System.out.println("Mise à jour réussie : " + response.body());
+                    } else {
+                        System.err.println("Échec de la mise à jour : " + response.body());
+                    }
+                });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+	 
+	 /**************** modifier zone si il ya erreur *********************/
+	 public static void updateZoneEtRempliePlanAction(Long id, String zone) {
+	        try {
+	            // Construire l'URL
+	            URL url = new URL("http://localhost:8281/operations/soudure/plan-action-zone/" + zone + "/" + id);
+	            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+	            // Définir la méthode HTTP PUT
+	            connection.setRequestMethod("PUT");
+	            connection.setDoOutput(true);
+
+	            // Ajouter les en-têtes
+	            connection.setRequestProperty("Authorization", "Bearer " + AppInformations.token);
+	            connection.setRequestProperty("Content-Type", "application/json");
+	            connection.setRequestProperty("Accept", "application/json");
+
+	            // Envoyer la requête
+	            connection.connect();
+
+	            int responseCode = connection.getResponseCode();
+	            if (responseCode == HttpURLConnection.HTTP_OK) {
+	                System.out.println("Zone mise à jour avec succès !");
+	            } else {
+	                System.out.println("Erreur lors de la mise à jour : " + responseCode);
+	            }
+
+	            connection.disconnect();
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+	 
+		public void testerMoyenneZone(int moyenneEch , long idSoudure) {
+		    int minPelage = extractNumber(AppInformations.nbrPelage);
+		    int maxVert = SoudureInformations.MoyenneVertMax;
+	        int minVert = serviceSoudure.fetchValeurMoyenneMin() ; 
+		    CompletableFuture<String> future = serviceSoudure.getValeurMoyenneMinFromApi();
+
+		    future.thenApply(result -> {
+		        System.out.println("Valeur reçue de moyenne vert min  : " + result); // Debugging
+		        try {
+		            return Integer.parseInt(result.trim());
+		        } catch (NumberFormatException e) {
+		            System.out.println("Erreur lors de la conversion de la valeur reçue de l'API : " + result);
+		            return 0; // Retourne 0 en cas d'erreur
+		        }
+		    }).thenAccept(parsedValueMoyenne -> {
+		    	SoudureInformations.MoyenneVertMin = parsedValueMoyenne ; 
+		    	SoudureInformations.minPelage = minPelage ; 
+
+		    	if ((moyenneEch < parsedValueMoyenne) && (minPelage < moyenneEch)) { // Zone jaune
+		    	    System.out.println("Zone jaune détectée");
+		    	    Platform.runLater(() -> {
+		    	    	updateZoneEtRempliePlanAction(idSoudure , "jaune") ; 
+		    	        
+		    	    });
+		    	  
+		    	} 
+		        if (moyenneEch < minPelage) { // Zone rouge
+		            System.out.println("Zone rouge détectée");
+		    	    Platform.runLater(() -> {
+		    	    	updateZoneEtRempliePlanAction(idSoudure , "rouge") ; 
+		            
+		    	    });
+				
+		    	    } else {
+		            System.out.println("Aucune alerte déclenchée");
+		        }
+		    });
+		}
+}	
+

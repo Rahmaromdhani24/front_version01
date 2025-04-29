@@ -1,7 +1,9 @@
 package Front_java.Torsadage;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -12,6 +14,7 @@ import Front_java.ChartMoyenneTorsadage;
 import Front_java.Configuration.AppInformations;
 import Front_java.Configuration.EmailRequest;
 import Front_java.Configuration.EmailValidationPdek;
+import Front_java.Configuration.SoudureInformations;
 import Front_java.Modeles.OperateurInfo;
 import Front_java.Modeles.TorsadageDTO;
 import Front_java.Modeles.UserDTO;
@@ -35,6 +38,9 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jfoenix.controls.JFXButton;
@@ -603,6 +609,8 @@ public class ResultatTorsadage {
 						LocalDate dateActuelle = Instant.now().atZone(zoneId).toLocalDate();
 						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 						torsadage.setDate(dateActuelle.format(formatter));
+						DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+						torsadage.setHeureCreation(LocalTime.now().format(timeFormatter));
 						torsadage.setQuantiteAtteint(Integer.parseInt(TorsadageInformations.quantiteAtteint));
 						torsadage.setQuantiteTotale(Integer.parseInt(TorsadageInformations.quantiteTotal));
 						torsadage.setNumerofil(TorsadageInformations.numFils);
@@ -627,11 +635,17 @@ public class ResultatTorsadage {
 						HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
 						if (response.statusCode() == 200) {
-						    sendMailValidationPDEK()  ; 
-						    String responseBody = response.body();
+							if((testerEtenduAjout(TorsadageInformations.ettendu) == true)&& (testerMoyenneAjout( TorsadageInformations.moyenne) == true) ) {
+		                		sendMailValidationPDEK() ; 
+		                	}	                	
+		                						    String responseBody = response.body();
 						    ObjectMapper mapper = new ObjectMapper();
 						    JsonNode jsonResponse = mapper.readTree(responseBody);
-
+						    
+						    String idTorsadage = jsonResponse.get("idTorsadage").asText(); // ou jsonResponse.get("soudureId") selon ton backend
+		                    long idTorsadageValue = Long.parseLong(idTorsadage);
+		                    TorsadageInformations.idTorsadage = idTorsadageValue;
+		                    
 						    // On vérifie la présence des champs et on met des valeurs par défaut si manquants
 						    long id = jsonResponse.has("pdekId") && !jsonResponse.get("pdekId").isNull()
 						            ? jsonResponse.get("pdekId").asLong()
@@ -741,10 +755,13 @@ public class ResultatTorsadage {
 		    	if ((moyenneEch >= finZoneJaune )&&(moyenneEch < valeurMaxRougeSuperieur ) )  { // Zone jaune
 		    	    System.out.println("Zone jaune détectée");
 		    	    Platform.runLater(() -> {
+		    	    	updateZone(TorsadageInformations.idTorsadage , "jaune")  ; 
 		    	        showWarningDialog("La valeur X dépasse les limites d'alarme (zone jaune). \nL'opérateur " 
 		    	            + AppInformations.operateurInfo.getPrenom() + " " 
 		    	            + AppInformations.operateurInfo.getNom() 
 		    	            + " doit informer son supérieur hiérarchique immédiatement.", "Attention - Limite dépassée");
+		    	       
+
 		    	    });
 		    		List<Double> valeursNonConformes = new ArrayList<>();
 					if ((moyenneEch >= finZoneJaune )&&(moyenneEch < valeurMaxRougeSuperieur ) ) valeursNonConformes.add(moyenneEch);
@@ -756,10 +773,16 @@ public class ResultatTorsadage {
 		    	if ((moyenneEch > valeurMaxRougeInferieur) && (moyenneEch <=  debutZoneJaune)  ) { // Zone jaune
 		    	    System.out.println("Zone jaune détectée");
 		    	    Platform.runLater(() -> {
+		    	   
+		    	    	updateZone(TorsadageInformations.idTorsadage , "jaune")  ; 
+
 		    	        showWarningDialog("La valeur X dépasse les limites d'alarme (zone jaune). \nL'opérateur " 
 		    	            + AppInformations.operateurInfo.getPrenom() + " " 
 		    	            + AppInformations.operateurInfo.getNom() 
 		    	            + " doit informer son supérieur hiérarchique immédiatement.", "Attention - Limite dépassée");
+		    	      
+
+
 		    	    });
 		    	    List<Double> valeursNonConformes = new ArrayList<>();
 					if ((moyenneEch > valeurMaxRougeInferieur) && (moyenneEch <=  debutZoneJaune)) valeursNonConformes.add(moyenneEch);
@@ -771,10 +794,15 @@ public class ResultatTorsadage {
 		        if ((moyenneEch <= valeurMaxRougeInferieur)) { // Zone rouge
 		            System.out.println("Zone rouge détectée");
 		    	    Platform.runLater(() -> {
+		    	    	
+		    	    	updateZone(TorsadageInformations.idTorsadage , "rouge")  ; 
 		            showErrorDialog("La valeur X dépasse la limite de contrôle (zone rouge). \nL'opérateur " 
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté");
+	    	        
+
+
 		    	    });
 		    	    List<Double> valeursNonConformes = new ArrayList<>();
 					if ((moyenneEch <= valeurMaxRougeInferieur) ) valeursNonConformes.add(moyenneEch);
@@ -786,10 +814,13 @@ public class ResultatTorsadage {
 		        if ((moyenneEch >=  valeurMaxRougeSuperieur)) { // Zone rouge
 		            System.out.println("Zone rouge détectée");
 		    	    Platform.runLater(() -> {
+		    	    	updateZone(TorsadageInformations.idTorsadage , "rouge")  ; 
 		            showErrorDialog("La valeur X dépasse la limite de contrôle (zone rouge). \nL'opérateur " 
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté");
+	    	       
+
 		    	    });
 		    	    List<Double> valeursNonConformes = new ArrayList<>();
 					if (((moyenneEch >=  valeurMaxRougeSuperieur)) ) valeursNonConformes.add(moyenneEch);
@@ -813,10 +844,13 @@ public class ResultatTorsadage {
 
 		    	if (etenduEch >=  2.4) {
 		    		  Platform.runLater(() -> {
+			    	    	updateZone(TorsadageInformations.idTorsadage , "rouge")  ; 
 		  	            showErrorDialog("La valeur R dépasse la limite de contrôle (zone rouge). \nL'opérateur " 
 		  	                + AppInformations.operateurInfo.getPrenom() + " " 
 		  	                + AppInformations.operateurInfo.getNom() 
 		  	                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté");
+		    	       
+
 		  	    	    });	
 		    		  List<Double> valeursNonConformes = new ArrayList<>();
 						if ((etenduEch >=  2.4) ) valeursNonConformes.add(etenduEch);
@@ -1241,12 +1275,12 @@ public class ResultatTorsadage {
 	 	}
 
 	 	/**************************** Mehtode de modifier attribut remplie plan action ********/
-	 /*	 public void changerRempliePlanAction(Long idSoudure) {
+	 	 public void changerRempliePlanAction(Long idTorsadage) {
 	         try {
 	             HttpClient client = HttpClient.newHttpClient();
 
 	             HttpRequest request = HttpRequest.newBuilder()
-	                 .uri(URI.create("http://localhost:8281/operations/soudure/remplir-plan-action/" + idSoudure))
+	                 .uri(URI.create("http://localhost:8281/operations/torsadage/remplir-plan-action/" + idTorsadage))
 	                 .header("Authorization", "Bearer " + AppInformations.token)
 	                 .PUT(HttpRequest.BodyPublishers.noBody())
 	                 .build();
@@ -1263,6 +1297,66 @@ public class ResultatTorsadage {
 	             e.printStackTrace();
 	         }
 	     }
-	}	*/
+	 	 
+	 	 /**************** modifier zone si il ya erreur *********************/
+		 public static void updateZone(Long id, String zone) {
+		        try {
+		            // Construire l'URL
+		            URL url = new URL("http://localhost:8281/operations/torsadage/plan-action-zone/" + zone + "/" + id);
+		            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
+		            // Définir la méthode HTTP PUT
+		            connection.setRequestMethod("PUT");
+		            connection.setDoOutput(true);
+
+		            // Ajouter les en-têtes
+		            connection.setRequestProperty("Authorization", "Bearer " + AppInformations.token);
+		            connection.setRequestProperty("Content-Type", "application/json");
+		            connection.setRequestProperty("Accept", "application/json");
+
+		            // Envoyer la requête
+		            connection.connect();
+
+		            int responseCode = connection.getResponseCode();
+		            if (responseCode == HttpURLConnection.HTTP_OK) {
+		                System.out.println("Zone mise à jour avec succès !");
+		            } else {
+		                System.out.println("Erreur lors de la mise à jour : " + responseCode);
+		            }
+
+		            connection.disconnect();
+
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
+		    }
+		 
+		 public boolean testerEtenduAjout(int etenduEch) throws InterruptedException, ExecutionException { 
+		 
+
+		        return etenduEch < 2.4 ;    
+		}
+
+		 public boolean testerMoyenneAjout(double moyenneEch) {
+			    int pas = extraireValeur(TorsadageInformations.specificationsMesure);  
+			    double zoneVertMin = (pas - 2) + 0.8;
+			    double zoneVertMax = (pas + 2) - 0.8;
+
+			    return moyenneEch >= zoneVertMin && moyenneEch <= zoneVertMax;
+			}
+		/* private void traiterZoneJaune(Long idTorsadage) {
+			    changerRempliePlanAction(idTorsadage);
+			    System.out.println("changerRempliePlanAction exécutée");
+
+			    updateZone(idTorsadage, "jaune");
+			    System.out.println("updateZone exécutée");
+			}
+
+		 private void traiterZoneRouge(Long idTorsadage) {
+			    changerRempliePlanAction(idTorsadage);
+			    System.out.println("changerRempliePlanAction exécutée");
+
+			    updateZone(idTorsadage, "rouge");
+			    System.out.println("updateZone exécutée");
+			}*/
 	}	
