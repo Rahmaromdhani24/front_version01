@@ -1,6 +1,7 @@
 package Front_java.SertissageNormal;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -57,7 +58,6 @@ public class ResultatSertissageNormal {
 	// Variables pour stocker la position de la souris
 	private double xOffset = 0;
 	private double yOffset = 0;
- 
 	   @FXML
 	    private Button btnClose;
 
@@ -190,10 +190,6 @@ public class ResultatSertissageNormal {
 		
 	@FXML
 	public void initialize(){
-		testerHauteurSertissageNormal(SertissageNormaleInformations.hauteurSertissageEch1 ,
-        		SertissageNormaleInformations.hauteurSertissageEch2 ,
-        		SertissageNormaleInformations.hauteurSertissageEch3 ,
-        		SertissageNormaleInformations.hauteurSertissageEchFin) ; 
 		ajouterPdekAvecSertissageNormal() ;
 		initialiserDonneesPDEKEnregistrer() ; 
 		afficherInfosOperateur();
@@ -201,6 +197,11 @@ public class ResultatSertissageNormal {
 		
 		afficherDateSystem();
 		afficherHeureSystem();
+		/*testerHauteurSertissageNormal(SertissageNormaleInformations.hauteurSertissageEch1 ,
+        		SertissageNormaleInformations.hauteurSertissageEch2 ,
+        		SertissageNormaleInformations.hauteurSertissageEch3 ,
+        		SertissageNormaleInformations.hauteurSertissageEchFin) ; 
+		*/
 
 		   // Une fois les données récupérées, créer le graphique
         StackPane moyenneChartWithZones =  ChartHauteurSertissageNormal.createChartWithZones(
@@ -648,7 +649,9 @@ public void initialiserDonneesPDEKEnregistrer() {
 					sertissageNormal.setSectionFil(SertissageNormaleInformations.sectionFil);
 					LocalDate dateActuelle = LocalDate.now();
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-					sertissageNormal.setDate(dateActuelle.format(formatter)); 									
+					sertissageNormal.setDate(dateActuelle.format(formatter)); 		
+				    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+				    sertissageNormal.setHeureCreation(LocalTime.now().format(timeFormatter));
                     sertissageNormal.setHauteurSertissageEch1(SertissageNormaleInformations.hauteurSertissageEch1); 					    
                     sertissageNormal.setHauteurSertissageEch2(SertissageNormaleInformations.hauteurSertissageEch2); 
                     sertissageNormal.setHauteurSertissageEch3(SertissageNormaleInformations.hauteurSertissageEch3); 
@@ -686,15 +689,26 @@ public void initialiserDonneesPDEKEnregistrer() {
 					HttpClient client = HttpClient.newHttpClient();
 					HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-					if (response.statusCode() == 200) {
+					if (response.statusCode() == 200 || response.statusCode() == 201) {
 					    String responseBody = response.body();
 					    ObjectMapper mapper = new ObjectMapper();
 					    JsonNode jsonResponse = mapper.readTree(responseBody);
 					    
-					    String idSertissage = jsonResponse.get("idSertissage").asText(); // ou jsonResponse.get("soudureId") selon ton backend
+					    String idSertissage =  jsonResponse.get("idSertissage").asText(); // ou jsonResponse.get("soudureId") selon ton backend
 	                    long idSertissageValue = Long.parseLong(idSertissage);
-	                    SertissageNormaleInformations.idSertissage = idSertissageValue;
+	                    SertissageNormaleInformations.idSertissageNormal= idSertissageValue ; 
 	                    
+	                    if (testerAjout(SertissageNormaleInformations.hauteurSertissageEch1,
+	                    		SertissageNormaleInformations.hauteurSertissageEch2,
+	                    		SertissageNormaleInformations.hauteurSertissageEch3 , 
+	                    		SertissageNormaleInformations.hauteurSertissageEchFin
+	                    		, SertissageNormaleInformations.labelHauteurSertissage)) {
+	                        sendMailValidationPDEK();
+	                        
+	                    } 
+	                    else {
+	                        System.out.println("Les valeurs ne sont pas dans la tolérance.");
+	                    }
 					    
 					    // On vérifie la présence des champs et on met des valeurs par défaut si manquants
 					    long id = jsonResponse.has("pdekId") && !jsonResponse.get("pdekId").isNull()
@@ -706,11 +720,13 @@ public void initialiserDonneesPDEKEnregistrer() {
 					            ? jsonResponse.get("pageNumber").asInt()
 					            : -1; // valeur par défaut
 
-					    idPdekSertissageNormalGlobale = id;
-					    numPageSertissageNormalGlobale = num;
-					    System.out.println("idPdekTorsadageGlobale  methode add :"+idPdekSertissageNormalGlobale) ; 
-					    System.out.println("numPageTorsadageGlobale methode add :"+numPageSertissageNormalGlobale) ; 
-						sendMailValidationPDEK() ; 
+		
+					  
+						
+					    System.out.println("✅ ID Sertissage recuperer: " + idSertissageValue);
+					    System.out.println("✅ ID Sertissage application: " + idSertissageValue);
+					    System.out.println("✅ PDEK ID: " + id);
+					    System.out.println("✅ Numéro de page: " + num);
 
 					} else {
 						System.out.println("Erreur dans l'ajout PDEK, code : " + response.statusCode() + ", message : "
@@ -733,8 +749,11 @@ public void initialiserDonneesPDEKEnregistrer() {
 		});
 		task.setOnSucceeded(event -> {
 		    // Ces méthodes s'exécutent uniquement quand l'ajout est réussi
-		   
-		  //  chargerSertissagesParPdekEtPage() ; 
+			testerHauteurSertissageNormal(SertissageNormaleInformations.hauteurSertissageEch1 ,
+	        		SertissageNormaleInformations.hauteurSertissageEch2 ,
+	        		SertissageNormaleInformations.hauteurSertissageEch3 ,
+	        		SertissageNormaleInformations.hauteurSertissageEchFin) ; 
+		   // chargerTorsadagesParPdekEtPage();
 		});
 		new Thread(task).start();
 	}
@@ -996,11 +1015,13 @@ public void initialiserDonneesPDEKEnregistrer() {
 
         if(ech1 <= min ||ech2 <= min ||  ech3 <= min ||  echFin <= min) {
 		    Platform.runLater(() -> {
+	            updateZoneEtRempliePlanAction( "rouge") ; 
+
 	            showErrorDialog("Une des valeurs mesureés des échantillons dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
 	                + AppInformations.operateurInfo.getPrenom() + " " 
 	                + AppInformations.operateurInfo.getNom() 
 	                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage");
-    	        changerRempliePlanAction(SertissageNormaleInformations.idSertissage) ; 
+
 	    	    });
 			List<Double> valeursNonConformes = new ArrayList<>();
 			if (ech1 <= min ) valeursNonConformes.add(ech1);
@@ -1013,11 +1034,12 @@ public void initialiserDonneesPDEKEnregistrer() {
 		}
 		if(ech1 >= max ||ech2 >=  max  ||  ech3 >= max ||  echFin >=  max) {
 		    Platform.runLater(() -> {
+	            updateZoneEtRempliePlanAction( "rouge") ; 
+
 	            showErrorDialog("Une des valeurs mesureés des échantillons  dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
 	                + AppInformations.operateurInfo.getPrenom() + " " 
 	                + AppInformations.operateurInfo.getNom() 
 	                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage ");
-    	        changerRempliePlanAction(SertissageNormaleInformations.idSertissage) ; 
 
 	    	    });
 		    
@@ -1033,11 +1055,12 @@ public void initialiserDonneesPDEKEnregistrer() {
 		}
 		if((ech1 <= maxJaune  && ech1 > min ) ||(ech2 <= maxJaune  && ech2 > min ) || (ech3 <= maxJaune  && ech3 > min) ||  (echFin <= maxJaune && echFin > min)) {
 		    Platform.runLater(() -> {
+	            updateZoneEtRempliePlanAction( "jaune") ; 
+
 	            showWarningDialog("Une des valeurs mesureés des échantillons dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
 	                + AppInformations.operateurInfo.getPrenom() + " " 
 	                + AppInformations.operateurInfo.getNom() 
 	                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage");
-    	        changerRempliePlanAction(SertissageNormaleInformations.idSertissage) ; 
 	    	    });
 		    
 		    List<Double> valeursNonConformes = new ArrayList<>();
@@ -1052,11 +1075,12 @@ public void initialiserDonneesPDEKEnregistrer() {
 	 }
 		if((ech1 < max  && ech1 > minJaune2 ) ||(ech2 < max  && ech2 > minJaune2 ) || (ech3 < max  && ech3 > minJaune2) ||  (echFin < max && echFin > minJaune2)) {
 		    Platform.runLater(() -> {
+	            updateZoneEtRempliePlanAction( "jaune") ; 
+
 	            showWarningDialog("Une des valeurs mesureés des échantillons dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
 	                + AppInformations.operateurInfo.getPrenom() + " " 
 	                + AppInformations.operateurInfo.getNom() 
 	                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage");
-    	        changerRempliePlanAction(SertissageNormaleInformations.idSertissage) ; 
 	    	    });
 		    
 		    List<Double> valeursNonConformes = new ArrayList<>();
@@ -1141,8 +1165,8 @@ public void initialiserDonneesPDEKEnregistrer() {
 	 	                    request.setToEmail(agent.getEmail());
 	 	                    request.setNomResponsable(agent.getPrenom() + " " + agent.getNom());
 	 	                    request.setLocalisation("Plant :" + AppInformations.operateurInfo.getPlant() + " , Segment : " + AppInformations.operateurInfo.getSegment());
-	 	                    request.setNomProcess(AppInformations.operateurInfo.getOperation());
-	 	                    request.setSectionFil(SertissageIDCInformations.sectionFilSelectionner);
+	 	                    request.setNomProcess("Sertissage");
+	 	                    request.setSectionFil(SertissageNormaleInformations.sectionFil+"  mm²");
 	 	                    request.setPosteMachine(AppInformations.operateurInfo.getPoste() + " /" + AppInformations.operateurInfo.getMachine());
 	 	                    request.setValeurMesuree(valeurMesurer);
 	 	                    request.setLimitesAcceptables(limiteAcceptable);
@@ -1199,8 +1223,8 @@ public void initialiserDonneesPDEKEnregistrer() {
 	 	                    request.setToEmail(chefLigne.getEmail());
 	 	                    request.setNomResponsable(chefLigne.getPrenom() + " " + chefLigne.getNom());
 	 	                    request.setLocalisation("Plant :" + AppInformations.operateurInfo.getPlant() + " , Segment : " + AppInformations.operateurInfo.getSegment());
-	 	                    request.setNomProcess(AppInformations.operateurInfo.getOperation());
-	 	                    request.setSectionFil(SertissageIDCInformations.sectionFilSelectionner);
+	 	                   request.setNomProcess("Sertissage");
+	 	                    request.setSectionFil(SertissageNormaleInformations.sectionFil +"  mm²");
 	 	                    request.setPosteMachine(AppInformations.operateurInfo.getPoste() + " /" + AppInformations.operateurInfo.getMachine());
 	 	                    request.setValeurMesuree(valeurMesurer);
 	 	                    request.setLimitesAcceptables(limiteAcceptable);
@@ -1316,27 +1340,49 @@ public void initialiserDonneesPDEKEnregistrer() {
 	 	    return sb.toString();
 	 	}
 
-	 	/**************************** Mehtode de modifier attribut remplie plan action ********/
-	 	 public void changerRempliePlanAction(Long idSoudure) {
-	         try {
-	             HttpClient client = HttpClient.newHttpClient();
+	 	 /**************** modifier zone si il ya erreur *********************/
+		 public static void updateZoneEtRempliePlanAction(String zone) {
+		        try {
+		            // Construire l'URL
+		            URL url = new URL("http://localhost:8281/operations/SertissageNormal/plan-action-zone/" + zone + "/" + 
+		            		SertissageNormaleInformations.idSertissageNormal);
+		            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-	             HttpRequest request = HttpRequest.newBuilder()
-	                 .uri(URI.create("http://localhost:8281/operations/soudure/remplir-plan-action/" + idSoudure))
-	                 .header("Authorization", "Bearer " + AppInformations.token)
-	                 .PUT(HttpRequest.BodyPublishers.noBody())
-	                 .build();
+		            // Définir la méthode HTTP PUT
+		            connection.setRequestMethod("PUT");
+		            connection.setDoOutput(true);
 
-	             client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-	                 .thenAccept(response -> {
-	                     if (response.statusCode() == 200) {
-	                         System.out.println("Mise à jour réussie : " + response.body());
-	                     } else {
-	                         System.err.println("Échec de la mise à jour : " + response.body());
-	                     }
-	                 });
-	         } catch (Exception e) {
-	             e.printStackTrace();
-	         }
-	     }
+		            // Ajouter les en-têtes
+		            connection.setRequestProperty("Authorization", "Bearer " + AppInformations.token);
+		            connection.setRequestProperty("Content-Type", "application/json");
+		            connection.setRequestProperty("Accept", "application/json");
+
+		            // Envoyer la requête
+		            connection.connect();
+
+		            int responseCode = connection.getResponseCode();
+		            if (responseCode == HttpURLConnection.HTTP_OK) {
+		                System.out.println("Zone mise à jour avec succès !");
+		                System.out.println("id de sertissage normal : " + SertissageNormaleInformations.idSertissageNormal);
+		            } else {
+		                System.out.println("Erreur lors de la mise à jour : " + responseCode);
+		            }
+
+		            connection.disconnect();
+
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
+		    }
+		 
+		 public boolean testerAjout(double ech1, double ech2, double ech3, double echFin, double hauteurSertissage) {
+			    double min = hauteurSertissage - 0.2;
+			    double max = hauteurSertissage + 0.2;
+
+			    return (ech1 >= min && ech1 <= max) &&
+			           (ech2 >= min && ech2 <= max) &&
+			           (ech3 >= min && ech3 <= max) &&
+			           (echFin >= min && echFin <= max);
+			}
+
 	}	

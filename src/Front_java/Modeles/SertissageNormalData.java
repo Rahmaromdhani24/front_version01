@@ -54,6 +54,8 @@ public class SertissageNormalData {
     
     private String date;
     
+    private String heureCreation;
+    
     private int  segment ; 
 
     private String numeroMachine ; 

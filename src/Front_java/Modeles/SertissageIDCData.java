@@ -16,6 +16,7 @@ public class SertissageIDCData {
 	   private  double hauteurSertissageMin;
 	   private  int segment ; 
 	   private  String date;
+	   private  String heureCreation ;
 	   private  double hauteurSertissageC1Ech1;
 	   private  double hauteurSertissageC1Ech2;
 	   private  double hauteurSertissageC1Ech3;

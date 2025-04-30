@@ -1,7 +1,9 @@
 package Front_java.SertissageIDC;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -14,6 +16,7 @@ import Front_java.Configuration.EmailRequest;
 import Front_java.Configuration.EmailValidationPdek;
 import Front_java.Configuration.SertissageIDCInformations;
 import Front_java.Configuration.SertissageNormaleInformations;
+import Front_java.Configuration.TorsadageInformations;
 import Front_java.Modeles.OperateurInfo;
 import Front_java.Modeles.SertissageIDCData;
 import Front_java.Modeles.UserDTO;
@@ -192,10 +195,11 @@ public class Resultat {
 
 	@FXML
 	public void initialize() {
+		ajouterPdekAvecSertissageIDC() ; 
 		fetchAgentsQualiteByPlant() ; 
 		fetchChefDesLignesByPlantAndSegment() ; 
 	
-		testerHauteurSertissageCote1(SertissageIDCInformations.hauteurSertissageC1Ech1 ,SertissageIDCInformations.hauteurSertissageC1Ech2 ,
+		/*testerHauteurSertissageCote1(SertissageIDCInformations.hauteurSertissageC1Ech1 ,SertissageIDCInformations.hauteurSertissageC1Ech2 ,
         		SertissageIDCInformations.hauteurSertissageC1Ech3 ,	SertissageIDCInformations.hauteurSertissageC1EchFin) ; 
 		
 		testerHauteurSertissageCote2(SertissageIDCInformations.hauteurSertissageC2Ech1 ,SertissageIDCInformations.hauteurSertissageC2Ech2 ,
@@ -207,7 +211,7 @@ public class Resultat {
 		testerForceTractionCote2(SertissageIDCInformations.forceTractionEch1C2 ,SertissageIDCInformations.forceTractionEch2C2 ,
         		SertissageIDCInformations.forceTractionEch3C2 ,	SertissageIDCInformations.forceTractionEchFinC2); 
 		
-		ajouterPdekAvecSertissageIDC() ; 
+		*/
 		initialiserDonneesPDEKEnregistrer() ; 
 		afficherInfosOperateur();
 		AppInformations.testTerminitionCommande = 0 ; 
@@ -415,7 +419,9 @@ public class Resultat {
 							sertissageIDC.setHauteurSertissageMin(10.85); 	
 							LocalDate dateActuelle = LocalDate.now();
 							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-							sertissageIDC.setDate(dateActuelle.format(formatter)); 									
+							sertissageIDC.setDate(dateActuelle.format(formatter)); 		
+						    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+						    sertissageIDC.setHeureCreation(LocalTime.now().format(timeFormatter));
 							sertissageIDC.setHauteurSertissageC1Ech1(SertissageIDCInformations.hauteurSertissageC1Ech1);
 							sertissageIDC.setHauteurSertissageC1Ech2(SertissageIDCInformations.hauteurSertissageC1Ech2);
 							sertissageIDC.setHauteurSertissageC1Ech3(SertissageIDCInformations.hauteurSertissageC1Ech3);
@@ -450,7 +456,26 @@ public class Resultat {
 							HttpClient client = HttpClient.newHttpClient();
 							HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-							if (response.statusCode() == 201) {
+							if (response.statusCode() == 200 || response.statusCode() == 201) {
+							     
+			                    if (testerAjout(SertissageIDCInformations.hauteurSertissageC1Ech1,
+			                    		SertissageIDCInformations.hauteurSertissageC1Ech2,
+			                    		SertissageIDCInformations.hauteurSertissageC1Ech3,
+			                    		SertissageIDCInformations.hauteurSertissageC1EchFin,
+			                    		SertissageIDCInformations.hauteurSertissageC2Ech1 ,
+			                    		SertissageIDCInformations.hauteurSertissageC2Ech2 , 
+			                    		SertissageIDCInformations.hauteurSertissageC2Ech3 , 
+			                    		SertissageIDCInformations.hauteurSertissageC2EchFin ,
+			                    		SertissageIDCInformations.forceTractionEch1C1 ,
+			                    		SertissageIDCInformations.forceTractionEch2C1 , 
+			                    		SertissageIDCInformations.forceTractionEch3C1 , 
+			                    		SertissageIDCInformations.forceTractionEchFinC1 , 
+			                    		SertissageIDCInformations.forceTractionEch1C2 ,
+			                    		SertissageIDCInformations.forceTractionEch2C2 , 
+			                    		SertissageIDCInformations.forceTractionEch3C2 , 
+			                    		SertissageIDCInformations.forceTractionEchFinC2 )) {
+			                        sendMailValidationPDEK();
+			                    }
 								  String responseBody = response.body();
 								    ObjectMapper mapper = new ObjectMapper();
 								    JsonNode jsonResponse = mapper.readTree(responseBody);
@@ -470,7 +495,8 @@ public class Resultat {
 								            ? jsonResponse.get("pageNumber").asInt()
 								            : -1; // valeur par défaut
 								  
-									sendMailValidationPDEK() ; 
+									
+								    
 							} else {
 								System.out.println("Erreur dans l'ajout PDEK, code : " + response.statusCode() + ", message : "
 										+ response.body());
@@ -490,18 +516,34 @@ public class Resultat {
 					System.out.println("Erreur lors de l'ajout du PDEK : " + exception.getMessage());
 					showErrorDialog("Erreur", "Erreur lors de l'ajout du PDEK : " + exception.getMessage());
 				});
-
+				task.setOnSucceeded(event -> {
+				    // Ces méthodes s'exécutent uniquement quand l'ajout est réussi
+					testerHauteurSertissageCote1(SertissageIDCInformations.hauteurSertissageC1Ech1 ,SertissageIDCInformations.hauteurSertissageC1Ech2 ,
+			        		SertissageIDCInformations.hauteurSertissageC1Ech3 ,	SertissageIDCInformations.hauteurSertissageC1EchFin) ; 
+					
+					testerHauteurSertissageCote2(SertissageIDCInformations.hauteurSertissageC2Ech1 ,SertissageIDCInformations.hauteurSertissageC2Ech2 ,
+			        		SertissageIDCInformations.hauteurSertissageC2Ech3 ,	SertissageIDCInformations.hauteurSertissageC2EchFin); 
+					
+					testerForceTractionCote1(SertissageIDCInformations.forceTractionEch1C1 ,SertissageIDCInformations.forceTractionEch2C1 ,
+			        		SertissageIDCInformations.forceTractionEch3C1 ,	SertissageIDCInformations.forceTractionEchFinC1) ; 
+					
+					testerForceTractionCote2(SertissageIDCInformations.forceTractionEch1C2 ,SertissageIDCInformations.forceTractionEch2C2 ,
+			        		SertissageIDCInformations.forceTractionEch3C2 ,	SertissageIDCInformations.forceTractionEchFinC2); 
+					
+					
+				   // chargerTorsadagesParPdekEtPage();
+				});
 				new Thread(task).start();
 			}
      /****************************************************************************************************************/
 		 public void testerHauteurSertissageCote1(double ech1 , double ech2 , double ech3 , double echFin){
 			if(ech1 <= 10.85 ||ech2 <= 10.85 ||  ech3 <= 10.85 ||  echFin <= 10.85) {
 			    Platform.runLater(() -> {
+		            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "rouge") ; 
 		            showErrorDialog("Une des valeurs mesureés des échantillons de Côté 1 dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage Côté 1");
-	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
 
 		    	    });
 				List<Double> valeursNonConformes = new ArrayList<>();
@@ -515,12 +557,11 @@ public class Resultat {
 			}
 			if(ech1 >= 11 ||ech2 >=  11 ||  ech3 >= 11 ||  echFin >=  11) {
 			    Platform.runLater(() -> {
+		            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "rouge") ; 
 		            showErrorDialog("Une des valeurs mesureés des échantillons de Côté 1 dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage Côté 1");
-
-	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
 
 		    	    });
 			    
@@ -536,12 +577,11 @@ public class Resultat {
 			}
 			if((ech1 <= 10.88 && ech1 > 10.85) ||(ech2 <= 10.88 && ech2 > 10.85) || (ech3 <= 10.88 && ech3 > 10.85) ||  (echFin <= 10.88 && echFin > 10.85)) {
 			    Platform.runLater(() -> {
+		            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "jaune") ; 
 		            showWarningDialog("Une des valeurs mesureés des échantillons de Côté 1 dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage Côté 1");
-	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
- 
 			    });
 			    
 			    List<Double> valeursNonConformes = new ArrayList<>();
@@ -557,11 +597,11 @@ public class Resultat {
 		 }
 			if((ech1 <= 11 && ech1 > 10.97) ||(ech2 <= 11 && ech2 > 10.97) || (ech3 <= 11 && ech3 > 10.97) ||  (echFin <= 11 && echFin > 10.97)) {
 			    Platform.runLater(() -> {
+		            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "jaune") ; 
 			    	showWarningDialog("Une des valeurs mesureés des échantillons de Côté 1 dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage Côté 1");
-	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
   
 			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
@@ -579,11 +619,11 @@ public class Resultat {
 		 public void testerHauteurSertissageCote2(double ech1 , double ech2 , double ech3 , double echFin){
 			if(ech1 <= 10.85 ||ech2 <= 10.85 ||  ech3 <= 10.85 ||  echFin <= 10.85) {
 			    Platform.runLater(() -> {
+		            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "rouge") ; 
 		            showErrorDialog("Une des valeurs mesureés des échantillons de Côté 2 dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage Côté 2");
-	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
 
 			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
@@ -598,11 +638,11 @@ public class Resultat {
 			}
 			if(ech1 >= 11 ||ech2 >=  11 ||  ech3 >= 11 ||  echFin >=  11) {
 			    Platform.runLater(() -> {
+		            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "rouge") ; 
 		            showErrorDialog("Une des valeurs mesureés des échantillons de Côté 2 dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans hauteur de sertissage Côté 2");
-	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
   
 			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
@@ -617,11 +657,11 @@ public class Resultat {
 			}
 			if((ech1 <= 10.88 && ech1 > 10.85) ||(ech2 <= 10.88 && ech2 > 10.85) || (ech3 <= 10.88 && ech3 > 10.85) ||  (echFin <= 10.88 && echFin > 10.85)) {
 			    Platform.runLater(() -> {
+		            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "jaune") ; 
 			    	showWarningDialog("Une des valeurs mesureés des échantillons de Côté 2 dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage Côté 2");
-	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
   
 			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
@@ -636,11 +676,11 @@ public class Resultat {
 		 }
 			if((ech1 <= 11 && ech1 > 10.97) ||(ech2 <= 11 && ech2 > 10.97) || (ech3 <= 11 && ech3 > 10.97) ||  (echFin <= 11 && echFin > 10.97)) {
 			    Platform.runLater(() -> {
+		            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "jaune") ; 
 			    	showWarningDialog("Une des valeurs mesureés des échantillons de Côté 2 dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
 		                + AppInformations.operateurInfo.getPrenom() + " " 
 		                + AppInformations.operateurInfo.getNom() 
 		                + " doit informer son supérieur hiérachique.", "Problème détecté dans hauteur de sertissage Côté 2");
-	    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
  
 			    });
 			    List<Double> valeursNonConformes = new ArrayList<>();
@@ -658,11 +698,11 @@ public class Resultat {
 			 //ech1 = 85
 				if(ech1 <= 50 ||ech2 <= 50 ||  ech3 <= 50 ||  echFin <= 50) {
 				    Platform.runLater(() -> {
+			            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "rouge") ; 
 			            showErrorDialog("Une des valeurs mesureés des échantillons de Côté 1 dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
 			                + AppInformations.operateurInfo.getPrenom() + " " 
 			                + AppInformations.operateurInfo.getNom() 
 			                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans force de traction Côté 1");
-		    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
 
 				    });
 				    
@@ -680,11 +720,11 @@ public class Resultat {
 			
 				if((ech1 >= 50 && ech1 <= 60) ||(ech2 >= 50 && ech2 <= 60) || (ech3 >= 50 && ech3 <= 60) ||  (echFin >= 50 && echFin <= 60)) {
 				    Platform.runLater(() -> {
+			            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "jaune") ; 
 				    	showWarningDialog("Une des valeurs mesureés des échantillons de Côté 1 dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
 			                + AppInformations.operateurInfo.getPrenom() + " " 
 			                + AppInformations.operateurInfo.getNom() 
 			                + " doit informer son supérieur hiérachique.", "Problème détecté dans force de traction Côté 1");
-		    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
 
 				    });
 				    List<Double> valeursNonConformes = new ArrayList<>();
@@ -702,11 +742,11 @@ public class Resultat {
 		 public void testerForceTractionCote2(double ech1 , double ech2 , double ech3 , double echFin){
 				if(ech1 <= 50 ||ech2 <= 50 ||  ech3 <= 50 ||  echFin <= 50) {
 				    Platform.runLater(() -> {
+			            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "rouge") ; 
 			            showErrorDialog("Une des valeurs mesureés des échantillons de Côté 2 dépasse les limites de de contrôle (zone rouge).\n L'opérateur "
 			                + AppInformations.operateurInfo.getPrenom() + " " 
 			                + AppInformations.operateurInfo.getNom() 
 			                + " doit appliquer l'arrêt 1er défaut.", "Problème détecté dans force de traction Côté 2");
-		    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
 
 				    });
 				    List<Double> valeursNonConformes = new ArrayList<>();
@@ -723,11 +763,11 @@ public class Resultat {
 			
 				if((ech1 >= 50 && ech1 <= 60) ||(ech2 >= 50 && ech2 <= 60) || (ech3 >= 50 && ech3 <= 60) ||  (echFin >= 50 && echFin <= 60)) {
 				    Platform.runLater(() -> {
+			            updateZoneEtRempliePlanAction(SertissageIDCInformations.idSertissage , "jaune") ; 
 				    	showWarningDialog("Une des valeurs mesureés des échantillons de Côté 2 dépasse les limites de de d'alarme (zone jaune).\n L'opérateur "
 			                + AppInformations.operateurInfo.getPrenom() + " " 
 			                + AppInformations.operateurInfo.getNom() 
 			                + " doit informer son supérieur hiérachique.", "Problème détecté dans force de traction Côté 2");
-		    	        changerRempliePlanAction(SertissageIDCInformations.idSertissage) ; 
 				    });
 				    List<Double> valeursNonConformes = new ArrayList<>();
 					if (ech1 >= 50 && ech1 <= 60) valeursNonConformes.add(ech1);
@@ -1198,27 +1238,64 @@ public class Resultat {
 		 	    return sb.toString();
 		 	}
 
-		 	/**************************** Mehtode de modifier attribut remplie plan action ********/
-		 	 public void changerRempliePlanAction(Long idSoudure) {
-		         try {
-		             HttpClient client = HttpClient.newHttpClient();
+			 /**************** modifier zone si il ya erreur *********************/
+			 public static void updateZoneEtRempliePlanAction(Long id, String zone) {
+			        try {
+			            // Construire l'URL
+			            URL url = new URL("http://localhost:8281/operations/SertissageIDC/plan-action-zone/" + zone + "/" + id);
+			            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-		             HttpRequest request = HttpRequest.newBuilder()
-		                 .uri(URI.create("http://localhost:8281/operations/soudure/remplir-plan-action/" + idSoudure))
-		                 .header("Authorization", "Bearer " + AppInformations.token)
-		                 .PUT(HttpRequest.BodyPublishers.noBody())
-		                 .build();
+			            // Définir la méthode HTTP PUT
+			            connection.setRequestMethod("PUT");
+			            connection.setDoOutput(true);
 
-		             client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-		                 .thenAccept(response -> {
-		                     if (response.statusCode() == 200) {
-		                         System.out.println("Mise à jour réussie : " + response.body());
-		                     } else {
-		                         System.err.println("Échec de la mise à jour : " + response.body());
-		                     }
-		                 });
-		         } catch (Exception e) {
-		             e.printStackTrace();
-		         }
-		     }
-		}	
+			            // Ajouter les en-têtes
+			            connection.setRequestProperty("Authorization", "Bearer " + AppInformations.token);
+			            connection.setRequestProperty("Content-Type", "application/json");
+			            connection.setRequestProperty("Accept", "application/json");
+
+			            // Envoyer la requête
+			            connection.connect();
+
+			            int responseCode = connection.getResponseCode();
+			            if (responseCode == HttpURLConnection.HTTP_OK) {
+			                System.out.println("Zone mise à jour avec succès !");
+			            } else {
+			                System.out.println("Erreur lors de la mise à jour : " + responseCode);
+			            }
+
+			            connection.disconnect();
+
+			        } catch (Exception e) {
+			            e.printStackTrace();
+			        }
+			    }
+			 
+			 public boolean testerAjout(double ech1, double ech2, double ech3, double echFin ,
+					                    double ech11, double ech22, double ech33, double echFin2 ,
+					                    double traction1Ech1, double traction1Ech2, double traction1Ech3, double traction1EchFin ,
+					                    double traction2Ech1, double traction2Ech2, double traction2Ech3, double traction2EchFin) {
+				    double min = 10.88;
+				    double max = 10.97;
+				    double minTraction = 60;
+				    double maxTraction = 110;
+				    return (ech1 > min && ech1 < max) &&
+				           (ech2 > min && ech2 < max) &&
+				           (ech3 > min && ech3 < max) &&
+				           (echFin > min && echFin < max)&&
+				           (ech11 > min && ech11 < max) &&
+				           (ech22 > min && ech22 < max) &&
+				           (ech33 > min && ech33 < max) &&
+				           (echFin2 > min && echFin2 < max)&&
+				           
+				           (traction1Ech1 > minTraction && traction1Ech1 < maxTraction) &&
+				           (traction1Ech2 > minTraction && traction1Ech2 < maxTraction) &&
+				           (traction1Ech3 > minTraction && traction1Ech3 < maxTraction) &&
+				           (traction1EchFin > minTraction && traction1EchFin < maxTraction)&&
+				           (traction2Ech1 > minTraction && traction2Ech1 < maxTraction) &&
+				           (traction2Ech2 > minTraction && traction2Ech2 < maxTraction) &&
+				           (traction2Ech3 > minTraction && traction2Ech3 < maxTraction) &&
+				           (traction2EchFin > minTraction && traction2EchFin < maxTraction);
+				}
+
+}
