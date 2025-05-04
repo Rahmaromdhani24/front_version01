@@ -1,5 +1,7 @@
 package Front_java.Configuration;
 
+import java.util.Locale;
+
 import Front_java.Modeles.OperateurInfo;
 
 public class AppInformations {
@@ -10,8 +12,9 @@ public class AppInformations {
     public static String sectionFilSelectionner;
     public static String codeControleSelectionner; 
     public static String nbrPelage; 
-
     public static int testTerminitionCommande = 0; 
+    
+    public static Locale langueSelectionnee = new Locale("fr");
 
 
     // Méthode pour réinitialiser toutes les variables statiques
